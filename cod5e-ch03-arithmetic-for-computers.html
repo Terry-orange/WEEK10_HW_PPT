@@ -1,0 +1,1437 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>COD 5e Ch3 — Arithmetic for Computers 互動教學簡報</title>
+  <style>
+    :root {
+      --bg: #f3f4f6;
+      --bg-elev: #fafbfc;
+      --bg-card: #eff1f4;
+      --bg-card-alt: #e7eaef;
+      --text: #2e343b;
+      --text-muted: #66707c;
+      --text-soft: #8a94a0;
+      --border: #dde1e7;
+      --accent: #c96e43;
+      --accent-soft: rgba(201, 110, 67, 0.13);
+      --accent-strong: #a9552e;
+      --code-bg: #e9ecef;
+      --m-blue: #6b88a2;
+      --m-Blue-bg: rgba(107, 136, 162, 0.14);
+      --m-plum: #8d769a;
+      --m-plum-bg: rgba(141, 118, 154, 0.14);
+      --m-ochre: #b58d3d;
+      --m-ochre-bg: rgba(181, 141, 61, 0.15);
+      --m-sage: #628a73;
+      --m-sage-bg: rgba(98, 138, 115, 0.15);
+      --m-rose: #b26b6b;
+      --m-rose-bg: rgba(178, 107, 107, 0.15);
+      --shadow: 0 2px 10px rgba(46, 52, 59, 0.04);
+      --radius: 10px;
+      --radius-sm: 6px;
+      --font-sans: "Inter", "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+      --font-mono: "JetBrains Mono", "Cascadia Code", "Consolas", monospace;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg: #1b1e22;
+        --bg-elev: #22262b;
+        --bg-card: #292e35;
+        --bg-card-alt: #313740;
+        --text: #d7dce2;
+        --text-muted: #909aa6;
+        --text-soft: #6c7683;
+        --border: #363c45;
+        --accent: #dc865c;
+        --accent-soft: rgba(220, 134, 92, 0.16);
+        --accent-strong: #eb9d76;
+        --code-bg: #181b1f;
+        --m-blue: #89a5bf;
+        --m-Blue-bg: rgba(137, 165, 191, 0.16);
+        --m-plum: #aa94b7;
+        --m-plum-bg: rgba(170, 148, 183, 0.16);
+        --m-ochre: #cfa958;
+        --m-ochre-bg: rgba(207, 169, 88, 0.17);
+        --m-sage: #7fa790;
+        --m-sage-bg: rgba(127, 167, 144, 0.17);
+        --m-rose: #cc8585;
+        --m-rose-bg: rgba(204, 133, 133, 0.17);
+        --shadow: 0 4px 16px rgba(0, 0, 0, 0.22);
+      }
+    }
+
+    :root[data-theme="dark"] {
+      --bg: #1b1e22;
+      --bg-elev: #22262b;
+      --bg-card: #292e35;
+      --bg-card-alt: #313740;
+      --text: #d7dce2;
+      --text-muted: #909aa6;
+      --text-soft: #6c7683;
+      --border: #363c45;
+      --accent: #dc865c;
+      --accent-soft: rgba(220, 134, 92, 0.16);
+      --accent-strong: #eb9d76;
+      --code-bg: #181b1f;
+      --m-blue: #89a5bf;
+      --m-Blue-bg: rgba(137, 165, 191, 0.16);
+      --m-plum: #aa94b7;
+      --m-plum-bg: rgba(170, 148, 183, 0.16);
+      --m-ochre: #cfa958;
+      --m-ochre-bg: rgba(207, 169, 88, 0.17);
+      --m-sage: #7fa790;
+      --m-sage-bg: rgba(127, 167, 144, 0.17);
+      --m-rose: #cc8585;
+      --m-rose-bg: rgba(204, 133, 133, 0.17);
+      --shadow: 0 4px 16px rgba(0, 0, 0, 0.22);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      width: 100%; height: 100%; overflow: hidden;
+      background: var(--bg); color: var(--text);
+      font-family: var(--font-sans); font-size: 15px; line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .app { display: flex; flex-direction: column; width: 100vw; height: 100vh; }
+
+    .topbar {
+      height: 46px; padding: 0 22px;
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--bg-elev); border-bottom: 1px solid var(--border);
+      flex-shrink: 0; z-index: 20;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 0.9rem; }
+    .brand-badge {
+      background: var(--accent-soft); color: var(--accent);
+      padding: 2px 8px; border-radius: 4px;
+      font-family: var(--font-mono); font-size: 0.76rem; font-weight: 600;
+    }
+    .brand-chapter { color: var(--text-muted); font-weight: 400; font-size: 0.82rem; }
+    .toolbar { display: flex; align-items: center; gap: 8px; }
+    .btn {
+      background: var(--bg-card); color: var(--text);
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+      padding: 4px 10px; font-size: 0.78rem; font-family: var(--font-sans);
+      cursor: pointer; display: inline-flex; align-items: center; gap: 5px;
+      transition: all 0.15s ease; text-decoration: none;
+    }
+    .btn:hover { border-color: var(--accent); color: var(--accent); }
+    .btn.active { background: var(--accent); color: var(--bg-elev); border-color: var(--accent); }
+    .kbd-hint {
+      font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-soft);
+      background: var(--bg); padding: 1px 5px; border-radius: 3px; border: 1px solid var(--border);
+    }
+
+    .progress-wrap { width: 100%; height: 3px; background: var(--border); flex-shrink: 0; }
+    .progress-bar { height: 100%; background: var(--accent); width: 0%; transition: width 0.25s ease; }
+
+    .deck {
+      flex: 1; position: relative; overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+      padding: 14px 26px;
+    }
+    .slide {
+      width: 100%; max-width: 1220px; height: 100%; max-height: 760px;
+      background: var(--bg-elev); border: 1px solid var(--border);
+      border-radius: var(--radius); box-shadow: var(--shadow);
+      padding: 17px 28px; display: none; flex-direction: column;
+      justify-content: space-between; overflow-y: auto;
+    }
+    .slide.active { display: flex; animation: fadeIn 0.2s ease; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(3px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .slide-header {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      gap: 14px; border-bottom: 1px solid var(--border);
+      padding-bottom: 7px; margin-bottom: 8px; flex-shrink: 0;
+    }
+    .slide-kicker {
+      font-family: var(--font-mono); font-size: 0.74rem; color: var(--accent);
+      text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; margin-bottom: 2px;
+    }
+    .slide-title { font-size: 1.32rem; font-weight: 700; color: var(--text); line-height: 1.25; }
+    .slide-source {
+      font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-muted);
+      background: var(--bg-card); padding: 3px 8px; border-radius: 4px;
+      border: 1px solid var(--border); white-space: nowrap; flex-shrink: 0;
+    }
+    .slide-body {
+      flex: 1; display: flex; flex-direction: column;
+      gap: 9px; justify-content: flex-start; overflow-y: auto;
+    }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .grid-2-3 { display: grid; grid-template-columns: 1.15fr 1.35fr; gap: 14px; }
+    .grid-3-2 { display: grid; grid-template-columns: 1.35fr 1.15fr; gap: 14px; }
+
+    .card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 9px 12px;
+    }
+    .card-accent {
+      background: var(--accent-soft); border: 1px solid var(--accent);
+      border-radius: var(--radius-sm); padding: 8.5px 12px;
+    }
+    .card-title {
+      font-size: 0.88rem; font-weight: 700; color: var(--text);
+      margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    }
+    .card-title .pill {
+      font-family: var(--font-mono); font-size: 0.7rem; font-weight: 600;
+      padding: 1px 7px; border-radius: 10px; background: var(--bg-elev);
+      color: var(--accent); border: 1px solid var(--border);
+    }
+
+    ul.clean { list-style: none; display: flex; flex-direction: column; gap: 3.5px; }
+    ul.clean li { position: relative; padding-left: 13px; font-size: 0.81rem; color: var(--text); }
+    ul.clean li::before {
+      content: "•"; position: absolute; left: 0; color: var(--accent); font-weight: bold;
+    }
+    .muted { color: var(--text-muted); font-size: 0.8rem; }
+    code, .mono {
+      font-family: var(--font-mono); background: var(--code-bg);
+      padding: 1px 5px; border-radius: 3px; font-size: 0.81rem;
+    }
+
+    table.wiki-table {
+      width: 100%; border-collapse: collapse; font-size: 0.79rem;
+      background: var(--bg-elev); border-radius: var(--radius-sm);
+      overflow: hidden; border: 1px solid var(--border);
+    }
+    table.wiki-table th, table.wiki-table td {
+      padding: 3.2px 7px; text-align: left; border-bottom: 1px solid var(--border);
+    }
+    table.wiki-table th {
+      background: var(--bg-card-alt); font-weight: 600; color: var(--text);
+      font-size: 0.75rem; font-family: var(--font-mono);
+    }
+    table.wiki-table tr:last-child td { border-bottom: none; }
+
+    .formula-box {
+      background: var(--code-bg); border-left: 3px solid var(--accent);
+      padding: 8px 12px; border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      font-family: var(--font-mono); font-size: 0.82rem; color: var(--text);
+    }
+
+    .tag-if { background: var(--m-Blue-bg); color: var(--m-blue); padding: 1px 6px; border-radius: 4px; font-family: var(--font-mono); font-size: 0.73rem; font-weight: 600; }
+    .tag-id { background: var(--m-plum-bg); color: var(--m-plum); padding: 1px 6px; border-radius: 4px; font-family: var(--font-mono); font-size: 0.73rem; font-weight: 600; }
+    .tag-ex { background: var(--m-ochre-bg); color: var(--m-ochre); padding: 1px 6px; border-radius: 4px; font-family: var(--font-mono); font-size: 0.73rem; font-weight: 600; }
+    .tag-mem { background: var(--m-sage-bg); color: var(--m-sage); padding: 1px 6px; border-radius: 4px; font-family: var(--font-mono); font-size: 0.73rem; font-weight: 600; }
+    .tag-wb { background: var(--m-rose-bg); color: var(--m-rose); padding: 1px 6px; border-radius: 4px; font-family: var(--font-mono); font-size: 0.73rem; font-weight: 600; }
+
+    .svg-wrap {
+      width: 100%; background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 8px 10px;
+      display: flex; justify-content: center; align-items: center;
+    }
+    svg { width: 100%; height: auto; display: block; }
+
+    .sim-bar { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px; }
+    .sim-btn {
+      background: var(--bg-elev); color: var(--text); border: 1px solid var(--border);
+      border-radius: 5px; padding: 4px 10px; font-family: var(--font-mono);
+      font-size: 0.77rem; cursor: pointer; transition: all 0.15s ease;
+    }
+    .sim-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .sim-btn.active { background: var(--accent); color: var(--bg-elev); border-color: var(--accent); font-weight: 600; }
+
+    .footer {
+      height: 44px; padding: 0 22px;
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--bg-elev); border-top: 1px solid var(--border);
+      flex-shrink: 0; font-size: 0.79rem; color: var(--text-muted);
+    }
+    .page-indicator { font-family: var(--font-mono); font-weight: 600; color: var(--text); }
+
+    .drawer-backdrop {
+      position: fixed; inset: 0; background: rgba(0, 0, 0, 0.45);
+      display: none; align-items: center; justify-content: center; z-index: 50;
+    }
+    .drawer-backdrop.open { display: flex; }
+    .drawer {
+      width: 90%; max-width: 940px; max-height: 82vh;
+      background: var(--bg-elev); border: 1px solid var(--border);
+      border-radius: var(--radius); box-shadow: var(--shadow);
+      padding: 20px 24px; display: flex; flex-direction: column; gap: 12px; overflow: hidden;
+    }
+    .drawer-header {
+      display: flex; justify-content: space-between; align-items: center;
+      border-bottom: 1px solid var(--border); padding-bottom: 10px;
+    }
+    .drawer-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 8px; overflow-y: auto; padding-right: 4px;
+    }
+    .drawer-item {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 8px 11px;
+      cursor: pointer; text-align: left; transition: all 0.15s ease;
+    }
+    .drawer-item:hover { border-color: var(--accent); }
+    .drawer-item.current { border-color: var(--accent); background: var(--accent-soft); }
+    .drawer-num { font-family: var(--font-mono); font-size: 0.72rem; color: var(--accent); font-weight: 600; }
+    .drawer-name { font-size: 0.83rem; font-weight: 600; color: var(--text); margin-top: 2px; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-badge">COD 5e · Ch3</span>
+        <span>Arithmetic for Computers</span>
+        <span class="brand-chapter">｜ALU、整數乘除法器、IEEE 754 浮點數與 x86 AVX SIMD</span>
+      </div>
+      <div class="toolbar">
+        <a class="btn" href="index.html">← 回全冊總網</a>
+        <button class="btn" id="btnOverview" title="章節目錄 (O)">☰ 目錄 <span class="kbd-hint">O</span></button>
+        <button class="btn" id="btnTheme" title="切換深淺色主題 (T)">◐ 主題: <span id="themeLabel">系統</span> <span class="kbd-hint">T</span></button>
+        <button class="btn" id="btnFullscreen" title="全螢幕 (F)">⛶ 全螢幕 <span class="kbd-hint">F</span></button>
+      </div>
+    </header>
+
+    <div class="progress-wrap">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <main class="deck" id="deck">
+      <!-- ==================== SLIDE 01 ==================== -->
+      <section class="slide active" data-title="封面與學習地圖：Arithmetic for Computers">
+        <div class="slide-header">
+          <div>
+            <div class="slide-kicker">Chapter 03 · Overview &amp; Learning Map</div>
+            <h1 class="slide-title">電腦的算術運算（Arithmetic for Computers）：從整數 ALU 到 IEEE 754 與 SIMD</h1>
+          </div>
+          <span class="slide-source">wiki/sources/cod5e-ch03-arithmetic-for-computers.md</span>
+        </div>
+        <div class="slide-body">
+          <div class="card-accent">
+            <div class="card-title">
+              <span>Ch3 核心主線：硬體如何將 32/64 個 0 與 1 轉化為高速且精確的整數、浮點與平行向量運算？</span>
+              <span class="pill">§3.1 – §3.10 全覆蓋</span>
+            </div>
+            <p class="muted" style="color:var(--text);">
+              本章深入剖析整數加減法與溢位（Overflow）硬體條件、三代乘法器與兩代除法器的時空複雜度演進、<strong>IEEE 754 浮點數標準</strong>（Normalized、Denormalized Gradual Underflow、NaN 與 G/R/S 捨入位元），以及多媒體與科學計算的核心加速器 <strong>Subword Parallelism (SIMD / x86 AVX)</strong>。
+            </p>
+          </div>
+
+          <div class="grid-4">
+            <div class="card">
+              <div class="card-title"><span>1. 整數 ALU 與乘除法</span><span class="tag-if">§3.1–§3.4</span></div>
+              <ul class="clean">
+                <li><strong>Signed Overflow</strong>：同號相加變異號、異號相減與除數同號</li>
+                <li><strong>Saturating Arithmetic</strong>：音訊/影像溢位夾止於極值</li>
+                <li><strong>Multiplier / Divider</strong>：64-bit ALU → 32-bit Shift-Add → 31 Adders Tree</li>
+              </ul>
+            </div>
+            <div class="card">
+              <div class="card-title"><span>2. IEEE 754 浮點數</span><span class="tag-id">§3.5</span></div>
+              <ul class="clean">
+                <li><strong>Single (32b)</strong>：<code>1+8+23</code>, Bias <code>127</code></li>
+                <li><strong>Double (64b)</strong>：<code>1+11+52</code>, Bias <code>1023</code></li>
+                <li><strong>Hidden Bit <code>1.xxxx</code></strong> 與五大特殊編碼區間（含 Denorm）</li>
+              </ul>
+            </div>
+            <div class="card">
+              <div class="card-title"><span>3. FP 加乘硬體與 CP1</span><span class="tag-ex">§3.5</span></div>
+              <ul class="clean">
+                <li><strong>FP Add (4 步)</strong>：對齊指數 → 尾數加減 → 正規化 → 捨入</li>
+                <li><strong>FP Mul (5 步)</strong>：指數相加減 Bias → 尾數相乘 → 正規化 → 捨入 → 定號</li>
+                <li><strong>Guard / Round / Sticky</strong> 與 <code>ulp</code> 精確度</li>
+              </ul>
+            </div>
+            <div class="card">
+              <div class="card-title"><span>4. SIMD 與 AVX DGEMM</span><span class="tag-mem">§3.6–§3.9</span></div>
+              <ul class="clean">
+                <li><strong>128-bit Subword</strong>：切斷進位鏈同時算 16B / 8H / 4W / 2D</li>
+                <li><strong>x86 AVX (256-bit YMM)</strong>：單指令 4 個 Double → <strong>3.85× 加速</strong></li>
+                <li><strong>§3.9 陷阱</strong>：負數右移 ≠ 除法、FP 加法不具結合律、Pentium FDIV</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="svg-wrap">
+            <svg viewBox="0 0 1060 115" aria-label="Ch3 Concept Flow">
+              <rect x="15" y="18" width="235" height="78" rx="8" fill="var(--bg-elev)" stroke="var(--m-blue)" stroke-width="1.5"/>
+              <text x="132" y="42" text-anchor="middle" fill="var(--m-blue)" font-size="12" font-weight="700" font-family="var(--font-mono)">1. Integer ALU &amp; Mul/Div</text>
+              <text x="132" y="62" text-anchor="middle" fill="var(--text)" font-size="11">Add/Sub Overflow · HI/LO Regs</text>
+              <text x="132" y="80" text-anchor="middle" fill="var(--text-muted)" font-size="10">32-Cycle Shift vs 5-Level Adder Tree</text>
+
+              <line x1="250" y1="57" x2="282" y2="57" stroke="var(--accent)" stroke-width="2"/>
+              <polygon points="282,57 274,52 274,62" fill="var(--accent)"/>
+
+              <rect x="285" y="18" width="245" height="78" rx="8" fill="var(--bg-elev)" stroke="var(--m-plum)" stroke-width="1.5"/>
+              <text x="407" y="42" text-anchor="middle" fill="var(--m-plum)" font-size="12" font-weight="700" font-family="var(--font-mono)">2. IEEE 754 Representation</text>
+              <text x="407" y="62" text-anchor="middle" fill="var(--text)" font-size="11">(-1)^S × (1+Frac) × 2^(Exp-Bias)</text>
+              <text x="407" y="80" text-anchor="middle" fill="var(--text-muted)" font-size="10">Gradual Underflow · ±∞ · NaN</text>
+
+              <line x1="530" y1="57" x2="562" y2="57" stroke="var(--accent)" stroke-width="2"/>
+              <polygon points="562,57 554,52 554,62" fill="var(--accent)"/>
+
+              <rect x="565" y="18" width="235" height="78" rx="8" fill="var(--bg-elev)" stroke="var(--m-ochre)" stroke-width="1.5"/>
+              <text x="682" y="42" text-anchor="middle" fill="var(--m-ochre)" font-size="12" font-weight="700" font-family="var(--font-mono)">3. FP Datapath &amp; Rounding</text>
+              <text x="682" y="62" text-anchor="middle" fill="var(--text)" font-size="11">4-Step FP Adder · 5-Step FP Mul</text>
+              <text x="682" y="80" text-anchor="middle" fill="var(--text-muted)" font-size="10">Guard / Round / Sticky · 0.5 ulp</text>
+
+              <line x1="800" y1="57" x2="832" y2="57" stroke="var(--accent)" stroke-width="2"/>
+              <polygon points="832,57 824,52 824,62" fill="var(--accent)"/>
+
+              <rect x="835" y="18" width="210" height="78" rx="8" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.8"/>
+              <text x="940" y="42" text-anchor="middle" fill="var(--accent)" font-size="12" font-weight="700" font-family="var(--font-mono)">4. Subword SIMD &amp; AVX</text>
+              <text x="940" y="62" text-anchor="middle" fill="var(--text)" font-size="11">256-bit YMM (4 Doubles/op)</text>
+              <text x="940" y="80" text-anchor="middle" fill="var(--text-muted)" font-size="10">DGEMM 3.85× Speedup</text>
+            </svg>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 02 ==================== -->
+      <section class="slide" data-title="整數加減法、溢位偵測與飽和運算 (§3.1–§3.2)">
+        <div class="slide-header">
+          <div>
+            <div class="slide-kicker">§3.1 – §3.2 · Integer Addition, Subtraction &amp; Overflow</div>
+            <h1 class="slide-title">整數加減法、Signed Overflow 四大條件與飽和運算（Saturating Arithmetic）</h1>
+          </div>
+          <span class="slide-source">wiki/datapaths/integer-alu-multiplication-and-division.md</span>
+        </div>
+        <div class="slide-body">
+          <div class="grid-2-3">
+            <div class="card">
+              <div class="card-title"><span>教科書加減法範例：<code>7 + 6 = 13</code> 與 <code>7 - 6 = 1</code></span><span class="tag-if">2's Complement</span></div>
+              <div class="formula-box" style="margin-bottom:8px;">
+                <strong>加法 (7 + 6 = 13)：</strong><br/>
+                &nbsp;&nbsp;<code>0000 ... 0111₂</code> (7)<br/>
+                + <code>0000 ... 0110₂</code> (6)<br/>
+                = <code>0000 ... 1101₂</code> (13, 範圍內無溢位)
+              </div>
+              <div class="formula-box">
+                <strong>減法 (7 - 6 = 7 + (-6) = 1)：</strong><br/>
+                <code>+6 = 0000...0110₂</code> → 反相+1 得 <code>-6 = 1111...1010₂</code><br/>
+                &nbsp;&nbsp;<code>0000 ... 0111₂</code> (7)<br/>
+                + <code>1111 ... 1010₂</code> (-6)<br/>
+                = <code>0000 ... 0001₂</code> (1, 捨棄第 33 位進位)
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-title"><span>2's Complement Signed Overflow 真值表</span><span class="pill">必考表格</span></div>
+              <table class="wiki-table">
+                <thead>
+                  <tr><th>Operation</th><th>Operand A</th><th>Operand B</th><th>Result Sign (為何必為溢位？)</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td><code>A + B</code></td><td>≥ 0 (Sign <code>0</code>)</td><td>≥ 0 (Sign <code>0</code>)</td><td><code>&lt; 0</code> (Sign <code>1</code>)：正+正進位侵入符號位元</td></tr>
+                  <tr><td><code>A + B</code></td><td><code>&lt; 0</code> (Sign <code>1</code>)</td><td><code>&lt; 0</code> (Sign <code>1</code>)</td><td>≥ 0 (Sign <code>0</code>)：負+負超出 -2<sup>31</sup> 下限</td></tr>
+                  <tr><td><code>A - B</code></td><td>≥ 0 (Sign <code>0</code>)</td><td><code>&lt; 0</code> (Sign <code>1</code>)</td><td><code>&lt; 0</code> (Sign <code>1</code>)：正減負 = 正加正變負</td></tr>
+                  <tr><td><code>A - B</code></td><td><code>&lt; 0</code> (Sign <code>1</code>)</td><td>≥ 0 (Sign <code>0</code>)</td><td>≥ 0 (Sign <code>0</code>)：負減正 = 負加負變正</td></tr>
+                </tbody>
+              </table>
+              <p class="muted" style="margin-top:6px;">
+                <strong>硬體鐵律</strong>：<strong>異號相加</strong>（正+負）與<strong>同號相減</strong>（正-正、負-負）<strong>絕對不可能發生 Signed Overflow</strong>！電路也可簡化為 <code>Overflow = CarryIn[31] XOR CarryOut[31]</code>。
+              </p>
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-title"><span>MIPS 溢位例外處理 vs. 無號指令</span><span class="tag-id">Exception Trap</span></div>
+              <ul class="clean">
+                <li><strong>觸發 Overflow Exception</strong>：<code>add</code>、<code>addi</code>、<code>sub</code>。發生溢位時硬體將溢位指令位址存入 <strong>EPC (Exception Program Counter)</strong>，跳轉至 OS 例外處理位址 <code>4000 0040_hex</code>（透過 <code>mfc0</code> 讀回 EPC）。</li>
+                <li><strong>完全忽略 Overflow</strong>：<code>addu</code>、<code>addiu</code>、<code>subu</code>。常用於 C 語言無號整數與<strong>記憶體位址指標運算</strong>（C 語言規格忽略整數溢位，故 C 編譯器預設產生 <code>addu/subu</code>）。</li>
+              </ul>
+            </div>
+            <div class="card-accent">
+              <div class="card-title"><span>多媒體飽和運算（Saturating Arithmetic）</span><span class="tag-ex">Media / DSP</span></div>
+              <ul class="clean">
+                <li><strong>為何不用 Modulo Wrap-around？</strong>若將音量或像素亮度調高時發生 2's complement 溢位，正極值 <code>+max</code> 會瞬間跳變成負極值 <code>-min</code>（產生刺耳爆音或全黑雜訊點）。</li>
+                <li><strong>Saturating 機制</strong>：運算超過上界時直接<strong>夾止（Clamp）於最大正值</strong>，低於下界時夾止於最小負值。廣泛內建於 SIMD 多媒體指令集。</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 03 ==================== -->
+      <section class="slide" data-title="三代整數乘法器演進與 MIPS mult / HI / LO (§3.3)">
+        <div class="slide-header">
+          <div>
+            <div class="slide-kicker">§3.3 · Integer Multiplication Hardware Evolution</div>
+            <h1 class="slide-title">三代整數乘法器硬體演進（v1 → v2 → Tree）與 MIPS <code>HI</code> / <code>LO</code> 暫存器</h1>
+          </div>
+          <span class="slide-source">wiki/datapaths/integer-alu-multiplication-and-division.md</span>
+        </div>
+        <div class="slide-body">
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-title"><span>4-bit 直式乘法追蹤：<code>1000₂ (8) × 1001₂ (9) = 72</code></span><span class="pill">m + n bits</span></div>
+              <div class="formula-box">
+                Multiplicand = <code>1000₂ (8)</code>, Multiplier = <code>1001₂ (9)</code><br/>
+                • Bit 0 = <code>1</code> → 加入 <code>1000₂ &lt;&lt; 0 = 0001000₂</code><br/>
+                • Bit 1 = <code>0</code> → 加入 <code>0000₂ &lt;&lt; 1 = 0000000₂</code><br/>
+                • Bit 2 = <code>0</code> → 加入 <code>0000₂ &lt;&lt; 2 = 0000000₂</code><br/>
+                • Bit 3 = <code>1</code> → 加入 <code>1000₂ &lt;&lt; 3 = 1000000₂</code><br/>
+                <strong>Product</strong> = <code>1001000₂ = 64 + 8 = 72₁₀</code>（m-bit × n-bit 需 m+n bits，故 32×32 需 <strong>64-bit Product</strong>）。
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-title"><span>MIPS 乘法指令與 <code>HI</code> / <code>LO</code> 專用暫存器</span><span class="tag-id">MIPS ISA</span></div>
+              <ul class="clean">
+                <li><strong><code>mult rs, rt</code> / <code>multu rs, rt</code></strong>：將 64-bit 乘積高 32 bits 存入 <strong><code>HI</code></strong>，低 32 bits 存入 <strong><code>LO</code></strong>；<strong>兩條指令皆不觸發硬體 Overflow Exception</strong>。</li>
+                <li><strong><code>mfhi rd</code> / <code>mflo rd</code></strong>：Move From HI / LO 至通用暫存器。</li>
+                <li><strong>軟體如何檢查 32-bit 乘法溢位？</strong><br/>
+                  • Unsigned (<code>multu</code>)：只要 <code>HI != 0</code> 即溢位。<br/>
+                  • Signed (<code>mult</code>)：若 <code>HI</code> 不是 <code>LO[31]</code> 的全 0 或全 1 符號延伸，即溢位。</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="svg-wrap">
+            <svg viewBox="0 0 1060 146" aria-label="Three Generations of Integer Multipliers">
+              <!-- Gen 1 -->
+              <rect x="12" y="10" width="330" height="135" rx="7" fill="var(--bg-elev)" stroke="var(--m-blue)" stroke-width="1.5"/>
+              <text x="177" y="29" text-anchor="middle" fill="var(--m-blue)" font-size="11.5" font-weight="700" font-family="var(--font-mono)">Version 1: Paper-and-Pencil (64-bit ALU)</text>
+              <rect x="30" y="42" width="135" height="24" rx="4" fill="var(--m-Blue-bg)" stroke="var(--m-blue)"/>
+              <text x="97" y="58" text-anchor="middle" fill="var(--text)" font-size="10" font-family="var(--font-mono)">Multiplicand (64b &lt;&lt;)</text>
+              <rect x="185" y="42" width="135" height="24" rx="4" fill="var(--bg-card)" stroke="var(--border)"/>
+              <text x="252" y="58" text-anchor="middle" fill="var(--text)" font-size="10" font-family="var(--font-mono)">Multiplier (32b &gt;&gt;)</text>
+              <rect x="65" y="76" width="120" height="24" rx="4" fill="var(--m-ochre-bg)" stroke="var(--m-ochre)"/>
+              <text x="125" y="92" text-anchor="middle" fill="var(--text)" font-size="10" font-weight="600" font-family="var(--font-mono)">64-bit ALU</text>
+              <rect x="45" y="110" width="160" height="24" rx="4" fill="var(--m-sage-bg)" stroke="var(--m-sage)"/>
+              <text x="125" y="126" text-anchor="middle" fill="var(--text)" font-size="10" font-family="var(--font-mono)">Product (64-bit Reg)</text>
+              <text x="275" y="106" text-anchor="middle" fill="var(--m-rose)" font-size="10" font-weight="600">缺點：浪費一半</text>
+              <text x="275" y="122" text-anchor="middle" fill="var(--m-rose)" font-size="10">64-bit 暫存器與 ALU</text>
+
+              <!-- Gen 2 -->
+              <rect x="364" y="10" width="330" height="135" rx="7" fill="var(--bg-elev)" stroke="var(--accent)" stroke-width="1.8"/>
+              <text x="529" y="29" text-anchor="middle" fill="var(--accent)" font-size="11.5" font-weight="700" font-family="var(--font-mono)">Version 2: Refined Multiplier (32-bit ALU)</text>
+              <rect x="385" y="42" width="130" height="24" rx="4" fill="var(--m-Blue-bg)" stroke="var(--m-blue)"/>
+              <text x="450" y="58" text-anchor="middle" fill="var(--text)" font-size="10" font-family="var(--font-mono)">Multiplicand (32b 固定)</text>
+              <rect x="385" y="76" width="130" height="24" rx="4" fill="var(--m-ochre-bg)" stroke="var(--m-ochre)"/>
+              <text x="450" y="92" text-anchor="middle" fill="var(--text)" font-size="10" font-weight="600" font-family="var(--font-mono)">32-bit ALU (加至左半)</text>
+              <rect x="374" y="110" width="138" height="24" rx="4" fill="var(--m-sage-bg)" stroke="var(--m-sage)"/>
+              <text x="443" y="125" text-anchor="middle" fill="var(--text)" font-size="9.2" font-family="var(--font-mono)">Product[63:32] (HI)</text>
+              <rect x="516" y="110" width="168" height="24" rx="4" fill="var(--accent-soft)" stroke="var(--accent)"/>
+              <text x="600" y="125" text-anchor="middle" fill="var(--accent)" font-size="9.2" font-weight="600" font-family="var(--font-mono)">Product[31:0]=Multiplier&gt;&gt;</text>
+              <text x="602" y="66" text-anchor="middle" fill="var(--text)" font-size="10" font-weight="600">核心巧思：</text>
+              <text x="602" y="82" text-anchor="middle" fill="var(--text-muted)" font-size="9.5">被乘數不動，改將</text>
+              <text x="602" y="96" text-anchor="middle" fill="var(--text-muted)" font-size="9.5">64-bit Product 右移</text>
+
+              <!-- Gen 3 -->
+              <rect x="716" y="10" width="330" height="135" rx="7" fill="var(--bg-elev)" stroke="var(--m-sage)" stroke-width="1.5"/>
+              <text x="881" y="29" text-anchor="middle" fill="var(--m-sage)" font-size="11.5" font-weight="700" font-family="var(--font-mono)">Faster Multiplier: 31-Adder Binary Tree</text>
+              <rect x="740" y="44" width="60" height="20" rx="3" fill="var(--m-Blue-bg)" stroke="var(--m-blue)"/>
+              <text x="770" y="58" text-anchor="middle" fill="var(--text)" font-size="9" font-family="var(--font-mono)">Add L1</text>
+              <rect x="810" y="44" width="60" height="20" rx="3" fill="var(--m-Blue-bg)" stroke="var(--m-blue)"/>
+              <text x="840" y="58" text-anchor="middle" fill="var(--text)" font-size="9" font-family="var(--font-mono)">Add L1</text>
+              <rect x="880" y="44" width="60" height="20" rx="3" fill="var(--m-Blue-bg)" stroke="var(--m-blue)"/>
+              <text x="910" y="58" text-anchor="middle" fill="var(--text)" font-size="9" font-family="var(--font-mono)">Add L1</text>
+              <rect x="950" y="44" width="60" height="20" rx="3" fill="var(--m-Blue-bg)" stroke="var(--m-blue)"/>
+              <text x="980" y="58" text-anchor="middle" fill="var(--text)" font-size="9" font-family="var(--font-mono)">Add L1</text>
+              <rect x="775" y="76" width="90" height="22" rx="3" fill="var(--m-ochre-bg)" stroke="var(--m-ochre)"/>
+              <text x="820" y="91" text-anchor="middle" fill="var(--text)" font-size="9.5" font-family="var(--font-mono)">Level 2..4 Tree</text>
+              <rect x="885" y="76" width="90" height="22" rx="3" fill="var(--m-ochre-bg)" stroke="var(--m-ochre)"/>
+              <text x="930" y="91" text-anchor="middle" fill="var(--text)" font-size="9.5" font-family="var(--font-mono)">Level 2..4 Tree</text>
+              <rect x="805" y="110" width="145" height="24" rx="4" fill="var(--m-sage-bg)" stroke="var(--m-sage)"/>
+              <text x="877" y="126" text-anchor="middle" fill="var(--text)" font-size="10" font-weight="600" font-family="var(--font-mono)">Level 5 Root → 64b Product</text>
+            </svg>
+          </div>
+
+          <table class="wiki-table">
+            <thead>
+              <tr><th>乘法器版本</th><th>ALU 寬度与數量</th><th>暫存器總位元數</th><th>延遲週期數</th><th>設計關鍵改進</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><strong>Version 1 (基本移位)</strong></td><td>1 個 <strong>64-bit ALU</strong></td><td>64 + 64 + 32 = <strong>160 bits</strong></td><td>~32 Cycles</td><td>直觀模擬手算，但 Multiplicand 與 ALU 有一半永遠是 0</td></tr>
+              <tr><td><strong>Version 2 (改良移位)</strong></td><td>1 個 <strong>32-bit ALU</strong></td><td>32 + 64 = <strong>96 bits</strong></td><td>32 Cycles</td><td>Product 右移並將 Multiplier 併入 Product 右半部，硬體減半</td></tr>
+              <tr><td><strong>Faster Multiplier (平行樹)</strong></td><td><strong>31 個 32-bit Adders</strong></td><td>管線化無迴圈</td><td><strong>⌈ log<sub>2</sub> 32 ⌉ = 5 層加法延遲</strong></td><td>展開 32 個 Partial Products 為二元加法樹，可完全 Pipelined</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 04 ==================== -->
+      <section class="slide" data-title="整數除法器演進與 MIPS div / divu (§3.4)">
+        <div class="slide-header">
+          <div>
+            <div class="slide-kicker">§3.4 · Integer Division Hardware &amp; Restoring Division</div>
+            <h1 class="slide-title">整數恢復餘數除法器（Restoring Division）演進與有號除法符號法則</h1>
+          </div>
+          <span class="slide-source">wiki/datapaths/integer-alu-multiplication-and-division.md</span>
+        </div>
+        <div class="slide-body">
+          <div class="grid-2-3">
+            <div class="card">
+              <div class="card-title"><span>教科書除法範例：<code>74 ÷ 8 = 9 ... 2</code> 與符號法則</span><span class="tag-if">Division Rule</span></div>
+              <div class="formula-box" style="margin-bottom:7px;">
+                <code>1001010₂ (74) ÷ 1000₂ (8)</code><br/>
+                = Quotient <code>1001₂ (9)</code>, Remainder <code>0010₂ (2)</code><br/>
+                <strong>恆等式：</strong> Dividend = Quotient × Divisor + Remainder
+              </div>
+              <table class="wiki-table">
+                <thead>
+                  <tr><th>Dividend</th><th>Divisor</th><th>Quotient</th><th>Remainder (必與被除數同號！)</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td><code>+7</code></td><td><code>+2</code></td><td><code>+3</code></td><td><strong><code>+1</code></strong> (+7 = (+3)×(+2) + 1)</td></tr>
+                  <tr><td><code>-7</code></td><td><code>+2</code></td><td><code>-3</code></td><td><strong><code>-1</code></strong> (-7 = (-3)×(+2) + (-1))</td></tr>
+                  <tr><td><code>+7</code></td><td><code>-2</code></td><td><code>-3</code></td><td><strong><code>+1</code></strong> (+7 = (-3)×(-2) + 1)</td></tr>
+                  <tr><td><code>-7</code></td><td><code>-2</code></td><td><code>+3</code></td><td><strong><code>-1</code></strong> (-7 = (+3)×(-2) + (-1))</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="card">
+              <div class="card-title"><span>Restoring Division 演算法與兩代硬體演進</span><span class="tag-ex">33 → 32 Steps</span></div>
+              <ul class="clean">
+                <li><strong>恢復餘數法（Restoring Division）每步流程</strong>：<br/>
+                  1. <code>Remainder = Remainder - Divisor</code>（先試減）<br/>
+                  2. 若 <code>Remainder &ge; 0</code>：商左移補 <code>1</code>；<br/>
+                  3. 若 <code>Remainder &lt; 0</code>：<strong>加回 Divisor 恢復原餘數</strong>（<code>Remainder += Divisor</code>），商左移補 <code>0</code>。</li>
+                <li><strong>Version 1 (64-bit ALU)</strong>：Divisor 放在 64-bit 暫存器左半部，每次右移 1 bit，共需 <strong>32+1 = 33 steps</strong>。</li>
+                <li><strong>Optimized Divider (32-bit ALU)</strong>：Divisor 固定 32-bit，改將 <strong>64-bit Remainder 左移</strong>，並把 Quotient 併入 Remainder 右半部空出的 32 bits（32 steps 完成！）。</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-title"><span>4-bit 恢復餘數除法追蹤：<code>7 (0000 0111₂) ÷ 2 (0010₂)</code></span><span class="pill">Step-by-Step</span></div>
+              <table class="wiki-table">
+                <thead>
+                  <tr><th>Iter</th><th>動作說明 (Version 1: Divisor 右移)</th><th>Remainder (8-bit)</th><th>Quotient</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>Init</td><td>載入 Dividend=7, Divisor 置左半 <code>0010 0000</code></td><td><code>0000 0111</code></td><td><code>0000</code></td></tr>
+                  <tr><td>1–2</td><td>試減皆為負 → 恢復餘數，商補 0，Divisor 右移</td><td><code>0000 0111</code></td><td><code>0000</code></td></tr>
+                  <tr><td>3</td><td>減 <code>0000 0100</code> 得 <code>+3 &ge; 0</code> → 商補 <strong>1</strong>，Divisor 右移</td><td><code>0000 0011</code></td><td><code>0001</code></td></tr>
+                  <tr><td>4</td><td>減 <code>0000 0010</code> 得 <code>+1 &ge; 0</code> → 商補 <strong>1</strong> (商=3, 餘=1)</td><td><strong><code>0000 0001</code> (+1)</strong></td><td><strong><code>0011</code> (+3)</strong></td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="card-accent">
+              <div class="card-title"><span>MIPS <code>div</code> / <code>divu</code> 暫存器配置與必考陷阱</span><span class="tag-wb">Exam Trap</span></div>
+              <ul class="clean">
+                <li><strong><code>LO = Quotient (商數)</code>，<code>HI = Remainder (餘數)</code></strong>（切勿記反！記憶法：商是主要結果放 <code>LO</code>）。</li>
+                <li><strong>為什麼同一顆 64-bit Shift Register 不能同時做乘又做除？</strong><br/>
+                  改良版乘法器需將 64-bit Product <strong>向右移位（Shift Right）</strong>；改良版除法器需將 64-bit Remainder <strong>向左移位（Shift Left）</strong>，故需雙向移位暫存器。</li>
+                <li><strong>MIPS 硬體不檢查除以零與 <code>-2³¹ / -1</code> 溢位</strong>：<code>div</code> 與 <code>divu</code> 發生除以 0 時<strong>不會觸發硬體 Trap</strong>，必須由編譯器插入 <code>bne + break</code> 軟體檢查！</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 05 ==================== -->
+      <section class="slide" data-title="IEEE 754 浮點數標準：Single vs. Double Precision (§3.5)">
+        <div class="slide-header">
+          <div>
+            <div class="slide-kicker">§3.5 · IEEE 754 Floating-Point Standard</div>
+            <h1 class="slide-title">IEEE 754 浮點數格式：Hidden 1、Biased Exponent 與 <code>-0.75</code> 編碼實戰</h1>
+          </div>
+          <span class="slide-source">wiki/concepts/ieee-754-floating-point-and-hardware.md</span>
+        </div>
+        <div class="slide-body">
+          <div class="formula-box">
+            <strong>IEEE 754 正規化數值通用公式：</strong>
+            Value = (-1)<sup>S</sup> × (1 + Fraction) × 2<sup>(Exponent - Bias)</sup>
+            &nbsp;｜&nbsp; <strong>Single Bias = 127</strong>，<strong>Double Bias = 1023</strong>
+          </div>
+
+          <div class="svg-wrap">
+            <svg viewBox="0 0 1060 112" aria-label="IEEE 754 Single and Double Bit Layout">
+              <!-- Single Precision -->
+              <text x="15" y="22" fill="var(--text)" font-size="11.5" font-weight="700" font-family="var(--font-mono)">Single Precision (32-bit / float):</text>
+              <rect x="275" y="6" width="55" height="28" rx="4" fill="var(--m-rose-bg)" stroke="var(--m-rose)"/>
+              <text x="302" y="24" text-anchor="middle" fill="var(--m-rose)" font-size="11" font-weight="700" font-family="var(--font-mono)">S (1b)</text>
+              <rect x="336" y="6" width="195" height="28" rx="4" fill="var(--m-Blue-bg)" stroke="var(--m-blue)"/>
+              <text x="433" y="24" text-anchor="middle" fill="var(--m-blue)" font-size="11" font-weight="700" font-family="var(--font-mono)">Exponent (8 bits, Bias 127)</text>
+              <rect x="537" y="6" width="505" height="28" rx="4" fill="var(--m-sage-bg)" stroke="var(--m-sage)"/>
+              <text x="789" y="24" text-anchor="middle" fill="var(--m-sage)" font-size="11" font-weight="700" font-family="var(--font-mono)">Fraction (23 bits, 隱含 Leading 1 → 24-bit Significand)</text>
+              <text x="278" y="47" fill="var(--text-muted)" font-size="9.5" font-family="var(--font-mono)">Bit 31</text>
+              <text x="338" y="47" fill="var(--text-muted)" font-size="9.5" font-family="var(--font-mono)">30</text>
+              <text x="515" y="47" fill="var(--text-muted)" font-size="9.5" font-family="var(--font-mono)">23</text>
+              <text x="540" y="47" fill="var(--text-muted)" font-size="9.5" font-family="var(--font-mono)">22</text>
+              <text x="1032" y="47" fill="var(--text-muted)" font-size="9.5" font-family="var(--font-mono)">0</text>
+
+              <!-- Double Precision -->
+              <text x="15" y="80" fill="var(--text)" font-size="11.5" font-weight="700" font-family="var(--font-mono)">Double Precision (64-bit / double):</text>
+              <rect x="275" y="64" width="55" height="28" rx="4" fill="var(--m-rose-bg)" stroke="var(--m-rose)"/>
+              <text x="302" y="82" text-anchor="middle" fill="var(--m-rose)" font-size="11" font-weight="700" font-family="var(--font-mono)">S (1b)</text>
+              <rect x="336" y="64" width="235" height="28" rx="4" fill="var(--m-plum-bg)" stroke="var(--m-plum)"/>
+              <text x="453" y="82" text-anchor="middle" fill="var(--m-plum)" font-size="11" font-weight="700" font-family="var(--font-mono)">Exponent (11 bits, Bias 1023)</text>
+              <rect x="577" y="64" width="465" height="28" rx="4" fill="var(--accent-soft)" stroke="var(--accent)"/>
+              <text x="809" y="82" text-anchor="middle" fill="var(--accent)" font-size="11" font-weight="700" font-family="var(--font-mono)">Fraction (52 bits, 隱含 Leading 1 → 53-bit Significand)</text>
+              <text x="278" y="105" fill="var(--text-muted)" font-size="9.5" font-family="var(--font-mono)">Bit 63</text>
+              <text x="338" y="105" fill="var(--text-muted)" font-size="9.5" font-family="var(--font-mono)">62</text>
+              <text x="555" y="105" fill="var(--text-muted)" font-size="9.5" font-family="var(--font-mono)">52</text>
+              <text x="580" y="105" fill="var(--text-muted)" font-size="9.5" font-family="var(--font-mono)">51</text>
+              <text x="1032" y="105" fill="var(--text-muted)" font-size="9.5" font-family="var(--font-mono)">0</text>
+            </svg>
+          </div>
+
+          <div class="grid-2-3">
+            <div class="card">
+              <div class="card-title"><span>教科書範例：將 <code>-0.75₁₀</code> 轉為 IEEE 754</span><span class="pill">Worked Example</span></div>
+              <ul class="clean">
+                <li><strong>Step 1 (二進位科學記號)</strong>：<br/>-0.75<sub>10</sub> = -3/4 = -0.11<sub>2</sub> = (-1)<sup>1</sup> × 1.1<sub>2</sub> × 2<sup>-1</sup></li>
+                <li><strong>Step 2 (讀取 S 與 Fraction)</strong>：<br/>S = 1；隱含小數點前 <code>1</code> 後，<code>Fraction = .1000...00₂</code></li>
+                <li><strong>Step 3 (加上 Bias)</strong>：<br/>
+                  • Single：Exp = -1 + 127 = 126 = 01111110<sub>2</sub> → <code>0xBF400000</code><br/>
+                  • Double：Exp = -1 + 1023 = 1022 = 01111111110<sub>2</sub></li>
+              </ul>
+            </div>
+
+            <div class="card">
+              <div class="card-title"><span>Single vs. Double Precision 規格與設計巧思</span><span class="tag-if">Range vs. Accuracy</span></div>
+              <table class="wiki-table">
+                <thead>
+                  <tr><th>項目</th><th>Single Precision (32-bit)</th><th>Double Precision (64-bit)</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>欄位配置 / Bias</td><td><code>1 + 8 + 23</code> / <strong>127</strong></td><td><code>1 + 11 + 52</code> / <strong>1023</strong></td></tr>
+                  <tr><td>Normalized 指數範圍</td><td>2<sup>-126</sup> ~ 2<sup>+127</sup> (Exp 1..254)</td><td>2<sup>-1022</sup> ~ 2<sup>+1023</sup> (Exp 1..2046)</td></tr>
+                  <tr><td>十進位數值範圍</td><td>≈ ± 2.0 × 10<sup>-38</sup> ~ ± 2.0 × 10<sup>38</sup></td><td>≈ ± 2.0 × 10<sup>-308</sup> ~ ± 2.0 × 10<sup>308</sup></td></tr>
+                  <tr><td>十進位有效位數</td><td><strong>≈ 6 ~ 7 decimal digits</strong></td><td><strong>≈ 15 ~ 16 decimal digits</strong></td></tr>
+                </tbody>
+              </table>
+              <p class="muted" style="margin-top:5px;">
+                <strong>為何將 Exponent 放在 Fraction 左側並採用 Biased 表示法？</strong>讓非負浮點數可直接用<strong>整數比較器（Integer Comparator）</strong>快速比大小與排序！
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 06 (INTERACTIVE #1) ==================== -->
+      <section class="slide" data-title="互動實驗室 #1：IEEE 754 五大編碼區間與 Gradual Underflow 探索器">
+        <div class="slide-header">
+          <div>
+            <div class="slide-kicker">Interactive Lab #1 · IEEE 754 Special Encodings &amp; Gradual Underflow</div>
+            <h1 class="slide-title">互動實驗室 #1：IEEE 754 五大編碼區間與 Denormal Gradual Underflow 問答</h1>
+          </div>
+          <span class="slide-source">wiki/concepts/ieee-754-floating-point-and-hardware.md</span>
+        </div>
+        <div class="slide-body">
+          <div class="grid-3-2">
+            <div class="card">
+              <div class="card-title">
+                <span>1. 點擊切換數值觀察 IEEE 754 Single Precision (32-bit) 拆解</span>
+                <span class="pill" id="fpCategoryBadge">Normalized</span>
+              </div>
+              <div class="sim-bar" id="fpPresetBar">
+                <button class="sim-btn active" data-fp="n075">-0.75 (課本例)</button>
+                <button class="sim-btn" data-fp="n015625">+0.15625</button>
+                <button class="sim-btn" data-fp="zero">±0.0 (Zero)</button>
+                <button class="sim-btn" data-fp="minnorm">Min +Norm (2⁻¹²⁶)</button>
+                <button class="sim-btn" data-fp="mindenorm">Min +Denorm (2⁻¹⁴⁹)</button>
+                <button class="sim-btn" data-fp="inf">+Infinity (∞)</button>
+                <button class="sim-btn" data-fp="nan">NaN (0/0)</button>
+              </div>
+              <div class="formula-box" id="fpBitDisplay" style="margin-bottom:8px;">
+                S = <code>1</code> ｜ Exp = <code>01111110₂</code> (126) ｜ Frac = <code>10000000000000000000000₂</code> ｜ Hex = <code>0xBF400000</code>
+              </div>
+              <div class="card" style="background:var(--bg-elev); padding:9px 12px;" id="fpMathExplain">
+                <strong>公式代入：</strong> (-1)<sup>1</sup> × (1 + 0.5) × 2<sup>(126 - 127)</sup> = -1.5 × 2<sup>-1</sup> = -0.75<sub>10</sub>
+              </div>
+
+              <table class="wiki-table" style="margin-top:8px;">
+                <thead>
+                  <tr><th>區間類別</th><th>Single Exp / Frac</th><th>Double Exp / Frac</th><th>數學公式 / 代表意義</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td><strong>Zero (± 0)</strong></td><td><code>0</code> / <code>0</code></td><td><code>0</code> / <code>0</code></td><td>± 0.0（正負零由 S 決定）</td></tr>
+                  <tr><td><strong>Denormalized</strong></td><td><code>0</code> / <code>&ne; 0</code></td><td><code>0</code> / <code>&ne; 0</code></td><td>(-1)<sup>S</sup> × (<strong>0.Frac</strong>) × 2<sup><strong>-126</strong></sup> (或 2<sup>-1022</sup>)</td></tr>
+                  <tr><td><strong>Normalized</strong></td><td><code>1..254</code> / 任意</td><td><code>1..2046</code> / 任意</td><td>(-1)<sup>S</sup> × (<strong>1.Frac</strong>) × 2<sup>(Exp-Bias)</sup></td></tr>
+                  <tr><td><strong>Infinity (±∞)</strong></td><td><code>255</code> / <code>0</code></td><td><code>2047</code> / <code>0</code></td><td>除以 0 或 Overflow 時產生 ±∞</td></tr>
+                  <tr><td><strong>NaN (非數值)</strong></td><td><code>255</code> / <code>&ne; 0</code></td><td><code>2047</code> / <code>&ne; 0</code></td><td><code>0/0</code> 或 ∞ - ∞ 等無效運算診斷</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="card-accent">
+              <div class="card-title">
+                <span>2. 教科書 Gradual Underflow 靈魂三問 (Q1–Q3)</span>
+                <span class="pill">課本必考推導</span>
+              </div>
+              <div class="sim-bar" id="denormQBar">
+                <button class="sim-btn active" data-q="q1">Q1: 最小 Norm 與 0 的間距</button>
+                <button class="sim-btn" data-q="q2">Q2: 最小 Norm 與次小 Norm 間距</button>
+                <button class="sim-btn" data-q="q3">Q3: 加入 Denorm 後的間距</button>
+              </div>
+              <div class="card" style="background:var(--bg-elev); margin-bottom:8px;" id="denormQBox">
+                <div class="card-title"><span id="denormQTitle">Q1：若不支援 Denorms，最小正 Normalized 數與 0 距離多大？</span></div>
+                <p id="denormQBody" style="font-size:0.82rem; color:var(--text);">
+                  最小正 Normalized Number 為 <code>1.000...0₂ × 2⁻¹²⁶</code>，因此它與 <code>0</code> 之間的突然斷層距離高達 <strong><code>2⁻¹²⁶</code></strong>！若直接把小於 2<sup>-126</sup> 的數 Flush to Zero，會導致 <code>x - y == 0</code> 即使 <code>x != y</code>。
+                </p>
+              </div>
+              <div class="svg-wrap" style="padding:6px;">
+                <svg viewBox="0 0 420 105" aria-label="Gradual Underflow Number Line">
+                  <text x="12" y="18" fill="var(--text-muted)" font-size="10" font-family="var(--font-mono)">Flush-to-Zero (無 Denorms)：0 到 2⁻¹²⁶ 出現 2²³ 倍巨大鴻溝</text>
+                  <line x1="20" y1="34" x2="395" y2="34" stroke="var(--text-muted)" stroke-width="1.5"/>
+                  <circle cx="30" cy="34" r="4" fill="var(--m-rose)"/>
+                  <text x="30" y="49" text-anchor="middle" fill="var(--m-rose)" font-size="9.5" font-family="var(--font-mono)">0</text>
+                  <circle cx="230" cy="34" r="4" fill="var(--m-blue)"/>
+                  <text x="230" y="49" text-anchor="middle" fill="var(--m-blue)" font-size="9.5" font-family="var(--font-mono)">2⁻¹²⁶</text>
+                  <circle cx="270" cy="34" r="4" fill="var(--m-blue)"/>
+                  <circle cx="310" cy="34" r="4" fill="var(--m-blue)"/>
+                  <circle cx="350" cy="34" r="4" fill="var(--m-blue)"/>
+                  <text x="130" y="29" text-anchor="middle" fill="var(--m-rose)" font-size="9.5" font-weight="700">Gap = 2⁻¹²⁶</text>
+                  <text x="290" y="29" text-anchor="middle" fill="var(--m-blue)" font-size="9">Step = 2⁻¹⁴⁹</text>
+
+                  <text x="12" y="70" fill="var(--accent)" font-size="10" font-weight="600" font-family="var(--font-mono)">Gradual Underflow (有 Denorms 0.Frac × 2⁻¹²⁶)：全程等距 2⁻¹⁴⁹！</text>
+                  <line x1="20" y1="86" x2="395" y2="86" stroke="var(--accent)" stroke-width="1.5"/>
+                  <circle cx="30" cy="86" r="4" fill="var(--m-rose)"/>
+                  <circle cx="70" cy="86" r="3.5" fill="var(--accent)"/>
+                  <circle cx="110" cy="86" r="3.5" fill="var(--accent)"/>
+                  <circle cx="150" cy="86" r="3.5" fill="var(--accent)"/>
+                  <circle cx="190" cy="86" r="3.5" fill="var(--accent)"/>
+                  <circle cx="230" cy="86" r="4" fill="var(--m-blue)"/>
+                  <circle cx="270" cy="86" r="4" fill="var(--m-blue)"/>
+                  <circle cx="310" cy="86" r="4" fill="var(--m-blue)"/>
+                  <text x="130" y="101" text-anchor="middle" fill="var(--accent)" font-size="9.5" font-weight="600" font-family="var(--font-mono)">Denorms Fill Gap (Step = 2⁻¹⁴⁹)</text>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 07 ==================== -->
+      <section class="slide" data-title="浮點數加法 4 步驟與硬體 Datapath (§3.5)">
+        <div class="slide-header">
+          <div>
+            <div class="slide-kicker">§3.5 · Floating-Point Addition Algorithm &amp; Datapath</div>
+            <h1 class="slide-title">浮點數加法 4 大步驟追蹤（<code>0.5 + (-0.4375)</code>）與雙 ALU 硬體架構</h1>
+          </div>
+          <span class="slide-source">wiki/concepts/ieee-754-floating-point-and-hardware.md</span>
+        </div>
+        <div class="slide-body">
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-title"><span>4-bit 尾數浮點加法追蹤：<code>0.5₁₀ + (-0.4375₁₀)</code></span><span class="pill">4-Step Trace</span></div>
+              <ul class="clean">
+                <li><strong>初始轉換</strong>：<br/>
+                  0.5<sub>10</sub> = 1.000<sub>2</sub> × 2<sup>-1</sup>；-0.4375<sub>10</sub> = -7/16 = -1.110<sub>2</sub> × 2<sup>-2</sup></li>
+                <li><strong>Step 1 (對齊小數點 Align Binary Point)</strong>：<br/>
+                  將<strong>指數較小者</strong>（2<sup>-2</sup>）的尾數右移 1 bit 對齊較大指數 2<sup>-1</sup>：<br/>
+                  -1.110<sub>2</sub> × 2<sup>-2</sup> → <strong>-0.111<sub>2</sub> × 2<sup>-1</sup></strong></li>
+                <li><strong>Step 2 (尾數相加 Add Significands)</strong>：<br/>
+                  1.000<sub>2</sub> + (-0.111<sub>2</sub>) = <strong>0.001<sub>2</sub> × 2<sup>-1</sup></strong></li>
+                <li><strong>Step 3 (正規化與檢查 Overflow/Underflow)</strong>：<br/>
+                  左移 3 bits 並將指數減 3：0.001<sub>2</sub> × 2<sup>-1</sup> → <strong>1.000<sub>2</sub> × 2<sup>-4</sup></strong><br/>
+                  （檢查 -126 ≤ -4 ≤ +127，無 Overflow/Underflow）</li>
+                <li><strong>Step 4 (捨入 Round to 4 bits)</strong>：<br/>
+                  尾數已恰好 4 bits：1.000<sub>2</sub> × 2<sup>-4</sup> = 1/16 = <strong>0.0625<sub>10</sub></strong>（若捨入再次進位需回到 Step 3 重新 Normalize）。</li>
+              </ul>
+            </div>
+
+            <div class="card">
+              <div class="card-title"><span>Floating-Point Adder 硬體資料路徑 (Datapath)</span><span class="tag-ex">Small ALU + Big ALU</span></div>
+              <div class="svg-wrap" style="padding:10px;">
+                <svg viewBox="0 0 480 250" aria-label="Floating Point Adder Datapath">
+                  <!-- Inputs -->
+                  <rect x="18" y="10" width="95" height="24" rx="4" fill="var(--m-Blue-bg)" stroke="var(--m-blue)"/>
+                  <text x="65" y="26" text-anchor="middle" fill="var(--m-blue)" font-size="10" font-weight="700" font-family="var(--font-mono)">Exp A / Exp B</text>
+                  <rect x="240" y="10" width="215" height="24" rx="4" fill="var(--m-sage-bg)" stroke="var(--m-sage)"/>
+                  <text x="347" y="26" text-anchor="middle" fill="var(--m-sage)" font-size="10" font-weight="700" font-family="var(--font-mono)">Significand A (1.FracA) / B (1.FracB)</text>
+
+                  <!-- Step 1 -->
+                  <rect x="18" y="54" width="145" height="36" rx="5" fill="var(--bg-elev)" stroke="var(--m-blue)" stroke-width="1.5"/>
+                  <text x="90" y="70" text-anchor="middle" fill="var(--text)" font-size="10.5" font-weight="700" font-family="var(--font-mono)">1. Small ALU (Exp Diff)</text>
+                  <text x="90" y="84" text-anchor="middle" fill="var(--text-muted)" font-size="9">比大小並算出移位量 |Ea - Eb|</text>
+
+                  <rect x="240" y="54" width="215" height="36" rx="5" fill="var(--bg-elev)" stroke="var(--m-ochre)" stroke-width="1.5"/>
+                  <text x="347" y="70" text-anchor="middle" fill="var(--text)" font-size="10.5" font-weight="700" font-family="var(--font-mono)">1. Right Shifter (對齊較小指數)</text>
+                  <text x="347" y="84" text-anchor="middle" fill="var(--text-muted)" font-size="9">將較小數尾數右移 |Ea - Eb| bits</text>
+
+                  <line x1="163" y1="72" x2="240" y2="72" stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="3,2"/>
+
+                  <!-- Step 2 -->
+                  <rect x="240" y="108" width="215" height="36" rx="5" fill="var(--bg-elev)" stroke="var(--accent)" stroke-width="1.8"/>
+                  <text x="347" y="124" text-anchor="middle" fill="var(--accent)" font-size="10.5" font-weight="700" font-family="var(--font-mono)">2. Big ALU (Significand Add/Sub)</text>
+                  <text x="347" y="138" text-anchor="middle" fill="var(--text-muted)" font-size="9">對齊後執行 24-bit / 53-bit 尾數加減</text>
+
+                  <!-- Step 3 -->
+                  <rect x="18" y="162" width="175" height="36" rx="5" fill="var(--bg-elev)" stroke="var(--m-plum)" stroke-width="1.5"/>
+                  <text x="105" y="178" text-anchor="middle" fill="var(--text)" font-size="10" font-weight="700" font-family="var(--font-mono)">3. Exponent Inc / Dec</text>
+                  <text x="105" y="191" text-anchor="middle" fill="var(--text-muted)" font-size="9">檢查 Overflow / Underflow Exception</text>
+
+                  <rect x="240" y="162" width="215" height="36" rx="5" fill="var(--bg-elev)" stroke="var(--m-plum)" stroke-width="1.5"/>
+                  <text x="347" y="178" text-anchor="middle" fill="var(--text)" font-size="10.5" font-weight="700" font-family="var(--font-mono)">3. Normalize Shift Left / Right</text>
+                  <text x="347" y="191" text-anchor="middle" fill="var(--text-muted)" font-size="9">恢復 1.xxxx 正規化格式</text>
+
+                  <line x1="240" y1="180" x2="193" y2="180" stroke="var(--m-plum)" stroke-width="1.5"/>
+
+                  <!-- Step 4 -->
+                  <rect x="135" y="214" width="320" height="30" rx="5" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"/>
+                  <text x="295" y="233" text-anchor="middle" fill="var(--accent)" font-size="10.5" font-weight="700" font-family="var(--font-mono)">4. Rounding Hardware (G/R/S) → 若進位則回授重正規化</text>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 08 ==================== -->
+      <section class="slide" data-title="浮點數乘法 5 步驟與 Guard / Round / Sticky 精確捨入 (§3.5)">
+        <div class="slide-header">
+          <div>
+            <div class="slide-kicker">§3.5 · Floating-Point Multiplication &amp; Accurate Rounding</div>
+            <h1 class="slide-title">浮點數乘法 5 步驟追蹤與 Guard / Round / Sticky 精確捨入（<code>ulp</code>）</h1>
+          </div>
+          <span class="slide-source">wiki/concepts/ieee-754-floating-point-and-hardware.md</span>
+        </div>
+        <div class="slide-body">
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-title"><span>浮點數乘法 5 步驟：<code>0.5 × (-0.4375) = -0.21875</code></span><span class="pill">5-Step Trace</span></div>
+              <ul class="clean">
+                <li><strong>輸入</strong>：0.5 = 1.000<sub>2</sub> × 2<sup>-1</sup>；-0.4375 = -1.110<sub>2</sub> × 2<sup>-2</sup></li>
+                <li><strong>Step 1 (指數相加並減去一個 Bias)</strong>：<br/>
+                  直接把兩個 Biased Exponents 相加會包含 2 × Bias，必須減掉一個 127：<br/>
+                  Exp<sub>biased</sub> = (-1 + 127) + (-2 + 127) - 127 = 126 + 125 - 127 = <strong>124</strong> (即真實指數 -3)</li>
+                <li><strong>Step 2 (尾數相乘 Multiply Significands)</strong>：<br/>
+                  1.000<sub>2</sub> × 1.110<sub>2</sub> = 1.110000<sub>2</sub></li>
+                <li><strong>Step 3 (正規化與檢查 Overflow/Underflow)</strong>：<br/>
+                  1.110000<sub>2</sub> × 2<sup>-3</sup> 已是 1.xxxx 格式，且 -126 ≤ -3 ≤ +127</li>
+                <li><strong>Step 4 (捨入至 4 bits)</strong>：保留 4 bits 得 1.110<sub>2</sub> × 2<sup>-3</sup></li>
+                <li><strong>Step 5 (設定符號位元)</strong>：異號相乘 S = 0 ⊕ 1 = 1 ⇒ <strong>-1.110<sub>2</sub> × 2<sup>-3</sup> = -7/32 = -0.21875<sub>10</sub></strong></li>
+              </ul>
+            </div>
+
+            <div class="card">
+              <div class="card-title"><span>IEEE 754 精確算術：Guard / Round / Sticky 與 <code>ulp</code></span><span class="tag-mem">0.5 ulp Accuracy</span></div>
+              <div class="formula-box" style="margin-bottom:8px;">
+                運算中間過程在尾數最右側額外保留 <strong>3 個保護位元</strong>：<br/>
+                <code>1 . x x x ... x</code> ｜ <strong style="color:var(--accent);">G (Guard)</strong> ｜ <strong style="color:var(--m-blue);">R (Round)</strong> ｜ <strong style="color:var(--m-plum);">S (Sticky)</strong>
+              </div>
+              <ul class="clean">
+                <li><strong>Guard bit (G)</strong>：尾數 LSB 右側第 1 個額外位元。</li>
+                <li><strong>Round bit (R)</strong>：尾數 LSB 右側第 2 個額外位元。</li>
+                <li><strong>Sticky bit (S)</strong>：Round bit 右側<strong>所有被移出位元的邏輯 OR</strong>（只要有任何一個 <code>1</code> 曾被右移掉，Sticky 就黏在 <code>1</code>，用來區分「剛好在正中間 <code>0.5000...</code>」與「大於中間 <code>0.5001...</code>」）。</li>
+                <li><strong>4 種 Rounding Modes</strong>：朝 +∞、朝 -∞、Truncate (朝 0)、以及預設 <strong>Round to Nearest Even（偶數捨入）</strong>——當落點恰好在正中間（<code>G=1, R=0, S=0</code>）時，強制將結果最低有效位元捨入為<strong>偶數 <code>0</code></strong>，消除大量統計偏誤。</li>
+                <li><strong>Units in the Last Place (<code>ulp</code>)</strong>：尾數 LSB 的誤差位數。IEEE 754 保證加減乘除與開根號誤差皆在 <strong>0.5 ulp</strong> 以內！</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="card-accent">
+            <div class="card-title"><span>課本 Guard/Round 十進位範例：計算 2.56 × 10<sup>0</sup> + 2.34 × 10<sup>2</sup>（假設僅 3 位有效十進位數）</span><span class="tag-ochre">Worked Example</span></div>
+            <p style="font-size:0.82rem; color:var(--text);">
+              • <strong>有 Guard &amp; Round digits</strong>：對齊得 0.0256 × 10<sup>2</sup> + 2.3400 × 10<sup>2</sup> = 2.3656 × 10<sup>2</sup>（Guard=<code>5</code>, Round=<code>6</code>）→ 超過一半進位得 <strong>2.37 × 10<sup>2</sup></strong>。<br/>
+              • <strong>無 Guard &amp; Round digits</strong>：右移對齊時 56 直接被截斷為 0.02 × 10<sup>2</sup> + 2.34 × 10<sup>2</sup> = <strong>2.36 × 10<sup>2</sup></strong>（產生 <strong>1 ulp</strong> 誤差）。
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 09 ==================== -->
+      <section class="slide" data-title="MIPS 浮點指令集 (CP1) 與 f2c / mm 組譯實戰 (§3.5)">
+        <div class="slide-header">
+          <div>
+            <div class="slide-kicker">§3.5 · MIPS Floating-Point ISA (Coprocessor 1) &amp; Code Examples</div>
+            <h1 class="slide-title">MIPS 浮點協同處理器 (CP1) 指令集與 <code>f2c</code> / <code>mm</code> (DGEMM) 程式碼實戰</h1>
+          </div>
+          <span class="slide-source">wiki/isa/mips-floating-point-and-x86-simd-avx.md</span>
+        </div>
+        <div class="slide-body">
+          <div class="card">
+            <div class="card-title"><span>MIPS Coprocessor 1 (CP1) 暫存器與核心指令分類</span><span class="pill">$f0 –$f31</span></div>
+            <div class="grid-3">
+              <div>
+                <span class="tag-if">暫存器與 Load/Store</span>
+                <p class="muted" style="margin-top:4px; color:var(--text);">
+                  32 個 32-bit 暫存器 <code>$f0–f31</code>；Double Precision 使用<strong>偶奇配對</strong>（<code>f0/$f1</code>..<code>$f30/$f31</code>，共 16 對）。<br/>
+                  • Single：<code>lwc1</code>, <code>swc1</code><br/>
+                  • Double：<code>ldc1</code>, <code>sdc1</code>（基底暫存器仍用整數 <code>$gp/$sp/$a0</code>）
+                </p>
+              </div>
+              <div>
+                <span class="tag-ex">單/倍精度算術運算</span>
+                <p class="muted" style="margin-top:4px; color:var(--text);">
+                  • Single (<code>.s</code>)：<code>add.s</code>, <code>sub.s</code>, <code>mul.s</code>, <code>div.s</code><br/>
+                  • Double (<code>.d</code>)：<code>add.d</code>, <code>sub.d</code>, <code>mul.d</code>, <code>div.d</code><br/>
+                  （例如 <code>add.d $f2,$f4, $f6</code> 代表雙精度對相加）
+                </p>
+              </div>
+              <div>
+                <span class="tag-wb">兩階段浮點比較與分支</span>
+                <p class="muted" style="margin-top:4px; color:var(--text);">
+                  先以 <code>c.eq.s</code> / <code>c.lt.s</code> / <code>c.le.s</code>（或 <code>.d</code>）設定 8 個 FP Condition Flags (0–7) 之一，再用 <strong><code>bc1t Label</code></strong> (Branch if True) 或 <strong><code>bc1f Label</code></strong> 跳轉。
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-title"><span>範例 1：華氏轉攝氏 <code>f2c(float fahr)</code></span><span class="tag-id">Single Precision</span></div>
+              <div class="formula-box">
+                <code>float f2c(float fahr) { return ((5.0/9.0)*(fahr - 32.0)); }</code><br/>
+                <span class="muted">// fahr in $f12, result in $f0, constants via $gp</span><br/>
+                <code>f2c: lwc1  $f16, const5($gp)  # $f16 = 5.0f</code><br/>
+                <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lwc1  $f18, const9($gp)  # $f18 = 9.0f</code><br/>
+                <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;div.s $f16,$f16, $f18   #$f16 = 5.0 / 9.0</code><br/>
+                <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lwc1  $f18, const32($gp) # $f18 = 32.0f</code><br/>
+                <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;sub.s $f18,$f12, $f18   #$f18 = fahr - 32.0</code><br/>
+                <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;mul.s $f0,$f16, $f18   #$f0  = result</code><br/>
+                <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;jr    $ra</code>
+              </div>
+              <p class="muted" style="margin-top:5px;">
+                <strong>陷阱提醒</strong>：若在 C 寫成整數常數 <code>(5/9)*(fahr - 32.0)</code>，整數除法 <code>5/9</code> 會先被截斷為 <code>0</code>，導致結果永遠是 <code>0.0</code>！
+              </p>
+            </div>
+
+            <div class="card">
+              <div class="card-title"><span>範例 2：32×32 Double 矩陣乘法 <code>mm (DGEMM)</code></span><span class="tag-mem">Double Precision</span></div>
+              <div class="formula-box">
+                <code>c[i][j] = c[i][j] + a[i][k] * b[k][j];</code><br/>
+                <span class="muted">// Row-Major 位址: base + (row * 32 + col) * 8 bytes</span><br/>
+                <code>L1: sll  $t2,$s0, 5        # $t2 = i * 32</code><br/>
+                <code>&nbsp;&nbsp;&nbsp;&nbsp;addu $t2,$t2, $s1      #$t2 = i * 32 + j</code><br/>
+                <code>&nbsp;&nbsp;&nbsp;&nbsp;sll  $t2,$t2, 3        # byte offset (* 8)</code><br/>
+                <code>&nbsp;&nbsp;&nbsp;&nbsp;addu $t2,$a0, $t2      # &amp;c[i][j]</code><br/>
+                <code>&nbsp;&nbsp;&nbsp;&nbsp;ldc1 $f4, 0($t2)        # $f4 = c[i][j]</code><br/>
+                <code>L3: ...                     # 同法算 &amp;b[k][j], &amp;a[i][k]</code><br/>
+                <code>&nbsp;&nbsp;&nbsp;&nbsp;ldc1  $f16, 0($t0)      # $f16 = b[k][j]</code><br/>
+                <code>&nbsp;&nbsp;&nbsp;&nbsp;ldc1  $f18, 0($t1)      # $f18 = a[i][k]</code><br/>
+                <code>&nbsp;&nbsp;&nbsp;&nbsp;mul.d $f16,$f18, $f16  # a[i][k] * b[k][j]</code><br/>
+                <code>&nbsp;&nbsp;&nbsp;&nbsp;add.d $f4,$f4,  $f16  # 累加至 $f4, 迴圈結束 sdc1</code>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 10 (INTERACTIVE #2) ==================== -->
+      <section class="slide" data-title="互動實驗室 #2：Subword Parallelism (SIMD) 與 x86 AVX DGEMM 模擬器 (§3.6–§3.8)">
+        <div class="slide-header">
+          <div>
+            <div class="slide-kicker">Interactive Lab #2 · Subword Parallelism (SIMD) &amp; x86 AVX DGEMM</div>
+            <h1 class="slide-title">互動實驗室 #2：Subword Parallelism 進位鏈切分與 x86 AVX DGEMM 3.85× 加速</h1>
+          </div>
+          <span class="slide-source">wiki/isa/mips-floating-point-and-x86-simd-avx.md</span>
+        </div>
+        <div class="slide-body">
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-title">
+                <span>1. 128-bit Subword Parallelism (SIMD) 進位鏈切分模擬器</span>
+                <span class="pill" id="simdModeBadge">16 × 8-bit Bytes</span>
+              </div>
+              <div class="sim-bar" id="simdModeBar">
+                <button class="sim-btn active" data-simd="16b">16 × 8-bit Byte (音訊/像素)</button>
+                <button class="sim-btn" data-simd="8h">8 × 16-bit Halfword</button>
+                <button class="sim-btn" data-simd="4w">4 × 32-bit Single FP / Word</button>
+                <button class="sim-btn" data-simd="2d">2 × 64-bit Double FP</button>
+              </div>
+              <div class="svg-wrap" id="simdSvgBox" style="padding:10px; min-height:82px;"></div>
+              <div class="formula-box" id="simdExplainBox" style="margin-top:8px;">
+                <strong>硬體原理：</strong>在 128-bit 加法器內部<strong>切斷 15 處 Carry 進位鏈</strong>（Partitioned Carry Chains），單週期平行完成 <strong>16 組 8-bit 像素/音訊飽和加法</strong>！
+              </div>
+            </div>
+
+            <div class="card-accent">
+              <div class="card-title">
+                <span>2. x86 浮點架構三代演進與 Unoptimized vs. AVX DGEMM</span>
+                <span class="pill" id="avxModeBadge">AVX 256-bit (3.85×)</span>
+              </div>
+              <div class="sim-bar" id="avxModeBar">
+                <button class="sim-btn" data-avx="8087">1. x86 8087 Stack (8×80b)</button>
+                <button class="sim-btn" data-avx="sse2">2. Scalar SSE2 (64b XMM)</button>
+                <button class="sim-btn active" data-avx="avx">3. Vector AVX (256b YMM, 4×D)</button>
+              </div>
+              <div class="formula-box" id="avxCodeBox" style="margin-bottom:8px;">
+                <code>vmovapd (%r11), %ymm0        # 一次載入 C[i..i+3][j] 共 4 個 Doubles</code><br/>
+                <code>vbroadcastsd (%rcx), %ymm1   # 將 B[k][j] 廣播複製成 4 份填入 %ymm1</code><br/>
+                <code>vmulpd (%rax), %ymm1, %ymm1  # 4 個 A[i..i+3][k] 與 B[k][j] 同步相乘</code><br/>
+                <code>vaddpd %ymm1, %ymm0, %ymm0   # 4 個乘積同步累加至 %ymm0</code>
+              </div>
+              <table class="wiki-table">
+                <thead>
+                  <tr><th>x86 浮點世代</th><th>暫存器寬度與架構</th><th>32×32 DGEMM 實測效能</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td><strong>8087 FPU (1980)</strong></td><td>8 個 80-bit Stack (<code>ST(0)..ST(7)</code>)</td><td>Stack 頂端瓶頸，編譯器難以配置暫存器</td></tr>
+                  <tr><td><strong>SSE2 Scalar (`sd`)</strong></td><td>128-bit <code>XMM0–XMM15</code> (僅用低 64b)</td><td><strong>1.00× 基準</strong> (<code>vmovsd</code>, <code>vmulsd</code>, <code>vaddsd</code>)</td></tr>
+                  <tr><td><strong>AVX Vector (`pd`)</strong></td><td><strong>256-bit <code>YMM0–YMM15</code> (4 Doubles)</strong></td><td><strong>3.85× 加速</strong>（逼近理論 4× 上限！）</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 11 ==================== -->
+      <section class="slide" data-title="§3.9 算術與浮點數三大迷思與陷阱 (Fallacies & Pitfalls)">
+        <div class="slide-header">
+          <div>
+            <div class="slide-kicker">§3.9 – §3.10 · Fallacies, Pitfalls &amp; Pentium FDIV Case Study</div>
+            <h1 class="slide-title">§3.9 算術與浮點數三大必考陷阱：負數右移、結合律失效與 Pentium FDIV</h1>
+          </div>
+          <span class="slide-source">wiki/exercises/ch03-arithmetic-and-floating-point-traps.md</span>
+        </div>
+        <div class="slide-body">
+          <div class="grid-3">
+            <div class="card">
+              <div class="card-title"><span>Fallacy 1：算術右移 = 除以 2<sup>n</sup>？</span><span class="tag-wb">Negative Trap</span></div>
+              <div class="formula-box" style="margin-bottom:7px;">
+                以 <code>-5 ÷ 4</code> 為例（<code>-5 = 1111...1011₂</code>）：<br/>
+                • <strong>C 整數除法 <code>-5 / 4</code></strong>（朝 0 捨入）：<br/>
+                  商 = <strong><code>-1</code></strong>，餘數 = <code>-1</code><br/>
+                • <strong>算術右移 <code>-5 &gt;&gt; 2</code></strong>（朝 -∞ 捨入）：<br/>
+                  <code>1111...1110₂</code> = <strong><code>-2</code></strong>（不等於 <code>-1</code>！）
+              </div>
+              <p class="muted" style="color:var(--text);">
+                <strong>結論</strong>：<code>sra</code> 僅在<strong>非負整數</strong>（或負的 2<sup>n</sup> 整倍數）時才等價於整數除以 2<sup>n</sup>！對一般負奇數右移會產生 Off-by-one 誤差。
+              </p>
+            </div>
+
+            <div class="card">
+              <div class="card-title"><span>Pitfall：浮點數加法不具結合律！</span><span class="tag-ex">(x+y)+z &ne; x+(y+z)</span></div>
+              <div class="formula-box" style="margin-bottom:7px;">
+                令 x = -1.5 × 10<sup>38</sup>,  y = +1.5 × 10<sup>38</sup>,  z = 1.0：<br/>
+                • <strong>(x + y) + z</strong>：<br/>
+                  = (0.0) + 1.0 = <strong>1.0</strong><br/>
+                • <strong>x + (y + z)</strong>：<br/>
+                  因 1.5 × 10<sup>38</sup> + 1.0 對齊時 1.0 超出 24-bit 尾數被完全捨去（Absorption），故 y + z = 1.5 × 10<sup>38</sup> ⇒ x + (y+z) = <strong>0.0</strong>！
+              </div>
+              <p class="muted" style="color:var(--text);">
+                <strong>平行計算啟示</strong>：在多執行緒 / GPU 上平行做浮點數加總（Reduction）時，不同執行緒執行順序會改變括號結合順序，導致每次執行結果有微小差異！
+              </p>
+            </div>
+
+            <div class="card-accent">
+              <div class="card-title"><span>1994 Intel Pentium FDIV Bug</span><span class="tag-if">$500M Recall</span></div>
+              <ul class="clean">
+                <li><strong>事故成因</strong>：Pentium 浮點除法器採用 SRT Radix-4 演算法，透過 PLA 查表每次產生 2 bits 商；工程師誤認其中 <strong>5 個 Table Entries</strong> 永遠不會被存取而將其設為 0（共 1066 個 Entries）。</li>
+                <li><strong>數學教授 Thomas Nicely 發現</strong>：<br/>
+                  計算 4195835 / 3145727 時，第 14~23 bits 出現錯誤（誤差在十進位第 5 位）。</li>
+                <li><strong>工程教訓</strong>：Intel 最終提列 <strong>5 億美元</strong>無條件全面召回晶片，自此催生微處理器設計的 <strong>Formal Verification（形式化驗證）</strong>工業標準。</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title"><span>Ch3 核心公式與考點速查總結（Concluding Remarks §3.10）</span><span class="pill">Takeaways</span></div>
+            <div class="grid-3">
+              <div class="muted" style="color:var(--text);"><strong>1. 位元本無意義，指令決定詮釋</strong>：同一組 32 bits 在 <code>add</code> 是 2's complement、在 <code>addu</code> 是 Unsigned、在 <code>add.s</code> 是 IEEE 754 Single。</div>
+              <div class="muted" style="color:var(--text);"><strong>2. 電腦算術是有限範圍與精度的近似</strong>：整數有 Overflow，浮點數有 Overflow、Underflow 與 Rounding Error（不可假設實數結合律）。</div>
+              <div class="muted" style="color:var(--text);"><strong>3. SIMD 是最高性價比的硬體加速</strong>：僅需切斷 ALU 進位鏈並擴充向量暫存器（如 AVX 256-bit YMM），即可獲得近線性的資料平行加速。</div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div>快捷鍵：<span class="kbd-hint">←</span> / <span class="kbd-hint">→</span> / <span class="kbd-hint">Space</span> 換頁 · <span class="kbd-hint">O</span> 目錄 · <span class="kbd-hint">T</span> 主題 · <span class="kbd-hint">F</span> 全螢幕</div>
+      <div class="page-indicator" id="pageIndicator">01 / 11</div>
+    </footer>
+  </div>
+
+  <!-- Overview Drawer -->
+  <div class="drawer-backdrop" id="drawerBackdrop">
+    <div class="drawer">
+      <div class="drawer-header">
+        <strong>Ch3 Arithmetic for Computers — 投影片章節目錄</strong>
+        <button class="btn" id="btnCloseDrawer">✕ 關閉</button>
+      </div>
+      <div class="drawer-grid" id="drawerGrid"></div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const slides = Array.from(document.querySelectorAll('.slide'));
+      const total = slides.length;
+      let current = 0;
+
+      const progressBar = document.getElementById('progressBar');
+      const pageIndicator = document.getElementById('pageIndicator');
+      const drawerBackdrop = document.getElementById('drawerBackdrop');
+      const drawerGrid = document.getElementById('drawerGrid');
+
+      function pad(n) { return n < 10 ? '0' + n : '' + n; }
+
+      function goTo(index) {
+        if (index < 0) index = 0;
+        if (index >= total) index = total - 1;
+        slides[current].classList.remove('active');
+        current = index;
+        slides[current].classList.add('active');
+        progressBar.style.width = (((current + 1) / total) * 100).toFixed(1) + '%';
+        pageIndicator.textContent = pad(current + 1) + ' / ' + pad(total);
+        renderDrawer();
+      }
+
+      function renderDrawer() {
+        drawerGrid.innerHTML = '';
+        slides.forEach((s, idx) => {
+          const btn = document.createElement('button');
+          btn.className = 'drawer-item' + (idx === current ? ' current' : '');
+          btn.innerHTML = '<div class="drawer-num">Slide ' + pad(idx + 1) + '</div><div class="drawer-name">' + (s.dataset.title || '') + '</div>';
+          btn.addEventListener('click', () => {
+            drawerBackdrop.classList.remove('open');
+            goTo(idx);
+          });
+          drawerGrid.appendChild(btn);
+        });
+      }
+
+      document.getElementById('btnOverview').addEventListener('click', () => {
+        renderDrawer();
+        drawerBackdrop.classList.add('open');
+      });
+      document.getElementById('btnCloseDrawer').addEventListener('click', () => {
+        drawerBackdrop.classList.remove('open');
+      });
+      drawerBackdrop.addEventListener('click', (e) => {
+        if (e.target === drawerBackdrop) drawerBackdrop.classList.remove('open');
+      });
+
+      // Theme handling (System -> Light -> Dark)
+      const root = document.documentElement;
+      const themeLabel = document.getElementById('themeLabel');
+      const modes = ['system', 'light', 'dark'];
+      const modeNames = { system: '系統', light: '淺色', dark: '深色' };
+      let modeIdx = 0;
+
+      function applyTheme(mode) {
+        if (mode === 'system') {
+          root.removeAttribute('data-theme');
+        } else {
+          root.setAttribute('data-theme', mode);
+        }
+        themeLabel.textContent = modeNames[mode];
+      }
+
+      document.getElementById('btnTheme').addEventListener('click', () => {
+        modeIdx = (modeIdx + 1) % modes.length;
+        applyTheme(modes[modeIdx]);
+      });
+
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+        if (modes[modeIdx] === 'system') applyTheme('system');
+      });
+
+      // Fullscreen
+      document.getElementById('btnFullscreen').addEventListener('click', () => {
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen().catch(() => {});
+        } else {
+          document.exitFullscreen().catch(() => {});
+        }
+      });
+
+      // Keyboard navigation
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight' || e.key === ' ') {
+          e.preventDefault();
+          goTo(current + 1);
+        } else if (e.key === 'ArrowLeft') {
+          e.preventDefault();
+          goTo(current - 1);
+        } else if (e.key === 'o' || e.key === 'O') {
+          renderDrawer();
+          drawerBackdrop.classList.toggle('open');
+        } else if (e.key === 't' || e.key === 'T') {
+          modeIdx = (modeIdx + 1) % modes.length;
+          applyTheme(modes[modeIdx]);
+        } else if (e.key === 'f' || e.key === 'F') {
+          document.getElementById('btnFullscreen').click();
+        } else if (e.key === 'Escape') {
+          drawerBackdrop.classList.remove('open');
+        }
+      });
+
+      // Interactive #1: IEEE 754 Presets & Gradual Underflow Q1-Q3
+      const fpPresets = {
+        n075: {
+          cat: 'Normalized',
+          bits: 'S = <code>1</code> ｜ Exp = <code>01111110₂</code> (126) ｜ Frac = <code>10000000000000000000000₂</code> ｜ Hex = <code>0xBF400000</code>',
+          explain: '<strong>公式代入：</strong> (-1)<sup>1</sup> × (1 + 0.5) × 2<sup>(126 - 127)</sup> = -1.5 × 2<sup>-1</sup> = <strong>-0.75<sub>10</sub></strong>（隱含 Leading 1）'
+        },
+        n015625: {
+          cat: 'Normalized',
+          bits: 'S = <code>0</code> ｜ Exp = <code>01111100₂</code> (124) ｜ Frac = <code>01000000000000000000000₂</code> ｜ Hex = <code>0x3E200000</code>',
+          explain: '<strong>公式代入：</strong> (-1)<sup>0</sup> × (1 + 0.25) × 2<sup>(124 - 127)</sup> = +1.25 × 2<sup>-3</sup> = 5/32 = <strong>+0.15625<sub>10</sub></strong>'
+        },
+        zero: {
+          cat: 'Zero (Exp=0, Frac=0)',
+          bits: 'S = <code>0/1</code> ｜ Exp = <code>00000000₂</code> (0) ｜ Frac = <code>00000000000000000000000₂</code> ｜ Hex = <code>0x00000000</code>',
+          explain: '<strong>特殊保留編碼：</strong> 因為 Normalized 隱含 Leading 1 (1.xxxx ≠ 0)，故規定 <code>Exp=0, Frac=0</code> 代表精確的 <strong>± 0.0</strong>。'
+        },
+        minnorm: {
+          cat: 'Min +Normalized (Exp=1)',
+          bits: 'S = <code>0</code> ｜ Exp = <code>00000001₂</code> (1) ｜ Frac = <code>00000000000000000000000₂</code> ｜ Hex = <code>0x00800000</code>',
+          explain: '<strong>最小正正規化數：</strong> +1.0 × 2<sup>(1 - 127)</sup> = <strong>2<sup>-126</sup> ≈ 1.175 × 10<sup>-38</sup></strong>（次小正規化數為 (1 + 2<sup>-23</sup>) × 2<sup>-126</sup>）'
+        },
+        mindenorm: {
+          cat: 'Min +Denormalized (Exp=0, Frac=1)',
+          bits: 'S = <code>0</code> ｜ Exp = <code>00000000₂</code> (0) ｜ Frac = <code>00000000000000000000001₂</code> ｜ Hex = <code>0x00000001</code>',
+          explain: '<strong>最小正非正規化數（Gradual Underflow）：</strong> +0.00...01<sub>2</sub> × 2<sup>-126</sup> = 2<sup>-23</sup> × 2<sup>-126</sup> = <strong>2<sup>-149</sup> ≈ 1.4 × 10<sup>-45</sup></strong>'
+        },
+        inf: {
+          cat: 'Infinity (Exp=255, Frac=0)',
+          bits: 'S = <code>0</code> ｜ Exp = <code>11111111₂</code> (255) ｜ Frac = <code>00000000000000000000000₂</code> ｜ Hex = <code>0x7F800000</code>',
+          explain: '<strong>無窮大 (+∞)：</strong> 當非零數除以 0 或發生算術 Overflow 時產生 ±∞，使程式可繼續執行比較而不必立刻當機。'
+        },
+        nan: {
+          cat: 'NaN (Exp=255, Frac≠0)',
+          bits: 'S = <code>0</code> ｜ Exp = <code>11111111₂</code> (255) ｜ Frac = <code>10000000000000000000000₂</code> ｜ Hex = <code>0x7FC00000</code>',
+          explain: '<strong>Not a Number (NaN)：</strong> 由 <code>0.0 / 0.0</code> 或 ∞ - ∞ 產生；任何與 NaN 的算術結果皆為 NaN，且 <code>NaN == NaN</code> 必為 <strong>False</strong>！'
+        }
+      };
+
+      const fpPresetBar = document.getElementById('fpPresetBar');
+      fpPresetBar.querySelectorAll('.sim-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          fpPresetBar.querySelectorAll('.sim-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          const d = fpPresets[btn.dataset.fp];
+          document.getElementById('fpCategoryBadge').textContent = d.cat;
+          document.getElementById('fpBitDisplay').innerHTML = d.bits;
+          document.getElementById('fpMathExplain').innerHTML = d.explain;
+        });
+      });
+
+      const denormQs = {
+        q1: {
+          title: 'Q1：若不支援 Denorms，最小正 Normalized 數與 0 距離多大？',
+          body: '最小正 Normalized Number 為 <code>1.000...0₂ × 2⁻¹²⁶</code>，因此它與 <code>0</code> 之間的突然斷層距離高達 <strong><code>2⁻¹²⁶</code></strong>！若直接把小於 <code>2⁻¹²⁶</code> 的數 Flush to Zero，會導致 <code>x - y == 0</code> 即使 <code>x != y</code>。'
+        },
+        q2: {
+          title: 'Q2：最小正 Normalized 數與「次小正 Normalized 數」距離多大？',
+          body: '次小正 Normalized Number 為 <code>(1 + 2⁻²³) × 2⁻¹²⁶</code>，兩者間距僅為 <strong><code>2⁻¹²⁶ × 2⁻²³ = 2⁻¹⁴⁹</code></strong>。這意味著從 <code>2⁻¹²⁶</code> 掉到 <code>0</code> 的斷層是正常步距的 <strong><code>2²³</code> 倍（838 萬倍）</strong>！'
+        },
+        q3: {
+          title: 'Q3：加入 Denormalized Numbers (0.Frac × 2⁻¹²⁶) 後間距變為多少？',
+          body: '啟用 Denorms 後，從 <code>2⁻¹²⁶</code> 到 <code>0</code> 之間被 <code>2²³ - 1</code> 個等距的 Denormalized 數填滿，最小正 Denorm 為 <strong><code>2⁻²³ × 2⁻¹²⁶ = 2⁻¹⁴⁹</code></strong>，使 <code>0</code> 附近的步距與 Normalized 區間完全一致（<strong>Gradual Underflow</strong>）！'
+        }
+      };
+
+      const denormQBar = document.getElementById('denormQBar');
+      denormQBar.querySelectorAll('.sim-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          denormQBar.querySelectorAll('.sim-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          const q = denormQs[btn.dataset.q];
+          document.getElementById('denormQTitle').textContent = q.title;
+          document.getElementById('denormQBody').innerHTML = q.body;
+        });
+      });
+
+      // Interactive #2: SIMD Partitioning & x86 AVX Explorer
+      const simdModes = {
+        '16b': {
+          badge: '16 × 8-bit Bytes',
+          count: 16,
+          label: '8b',
+          color: 'var(--m-blue)',
+          bg: 'var(--m-Blue-bg)',
+          explain: '<strong>16 × 8-bit Byte 模式：</strong>切斷 128-bit ALU 內全部 <strong>15 處進位鏈</strong>，單一週期同時執行 <strong>16 個 8-bit 像素或音訊取樣</strong>運算（16× 資料平行吞吐量）。'
+        },
+        '8h': {
+          badge: '8 × 16-bit Halfwords',
+          count: 8,
+          label: '16-bit Half',
+          color: 'var(--m-plum)',
+          bg: 'var(--m-plum-bg)',
+          explain: '<strong>8 × 16-bit Halfword 模式：</strong>每 16 bits 切斷一次進位鏈（共切斷 7 處），單一週期同時執行 <strong>8 個 16-bit 音訊/DSP 短整數</strong>運算。'
+        },
+        '4w': {
+          badge: '4 × 32-bit Words / Single FP',
+          count: 4,
+          label: '32-bit Word / Float',
+          color: 'var(--m-ochre)',
+          bg: 'var(--m-ochre-bg)',
+          explain: '<strong>4 × 32-bit Word / Single Precision 模式：</strong>每 32 bits 切斷進位鏈（共切斷 3 處），單一週期同時執行 <strong>4 個 32-bit 整數或 Single Precision 浮點數</strong>（3D 圖形頂點座標 <code>x, y, z, w</code>）。'
+        },
+        '2d': {
+          badge: '2 × 64-bit Doubles',
+          count: 2,
+          label: '64-bit Double Precision FP',
+          color: 'var(--accent)',
+          bg: 'var(--accent-soft)',
+          explain: '<strong>2 × 64-bit Double Precision 模式（SSE2 128-bit XMM）：</strong>僅在 Bit 63 與 Bit 64 中間切斷 1 處進位鏈，單週期平行算 <strong>2 個 Double</strong>；升級至 <strong>256-bit AVX YMM</strong> 時則平行算 <strong>4 個 Double</strong>！'
+        }
+      };
+
+      function renderSimd(key) {
+        const m = simdModes[key];
+        document.getElementById('simdModeBadge').textContent = m.badge;
+        document.getElementById('simdExplainBox').innerHTML = m.explain;
+        const w = 460;
+        const gap = 4;
+        const boxW = (w - gap * (m.count - 1)) / m.count;
+        let rects = '';
+        for (let i = 0; i < m.count; i++) {
+          const x = 10 + i * (boxW + gap);
+          rects += '<rect x="' + x.toFixed(1) + '" y="16" width="' + boxW.toFixed(1) + '" height="34" rx="4" fill="' + m.bg + '" stroke="' + m.color + '" stroke-width="1.5"/>';
+          rects += '<text x="' + (x + boxW / 2).toFixed(1) + '" y="37" text-anchor="middle" fill="var(--text)" font-size="' + (m.count === 16 ? '8.5' : '10') + '" font-weight="700" font-family="var(--font-mono)">' + m.label + '</text>';
+        }
+        document.getElementById('simdSvgBox').innerHTML =
+          '<svg viewBox="0 0 480 62" aria-label="128-bit SIMD Partition">' + rects + '</svg>';
+      }
+
+      renderSimd('16b');
+      const simdModeBar = document.getElementById('simdModeBar');
+      simdModeBar.querySelectorAll('.sim-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          simdModeBar.querySelectorAll('.sim-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          renderSimd(btn.dataset.simd);
+        });
+      });
+
+      const avxModes = {
+        '8087': {
+          badge: '8087 Stack Architecture',
+          code: '<code>fldl   (%rax)          # Push A[i][k] onto 80-bit FP Stack ST(0)</code><br/>' +
+                '<code>fmull  (%rcx)          # ST(0) = ST(0) * B[k][j]</code><br/>' +
+                '<code>faddp  %st(0), %st(1)  # 累加至 ST(1) 并 Pop Stack（Top-of-Stack 成為嚴重效能瓶頸）</code>'
+        },
+        'sse2': {
+          badge: 'Scalar SSE2 (1.00× Baseline)',
+          code: '<code>vmovsd (%r10), %xmm0         # 僅載入 1 個 64-bit Double C[i][j] (sd = Scalar Double)</code><br/>' +
+                '<code>vmovsd (%rcx), %xmm1         # 載入 1 個 B[k][j]</code><br/>' +
+                '<code>vmulsd (%rax), %xmm1, %xmm1  # 單筆 Double 乘法 A[i][k] * B[k][j]</code><br/>' +
+                '<code>vaddsd %xmm1, %xmm0, %xmm0   # 單筆 Double 累加 (浪費 XMM 高位元)</code>'
+        },
+        'avx': {
+          badge: 'AVX 256-bit (3.85× Speedup)',
+          code: '<code>vmovapd (%r11), %ymm0        # 一次載入 C[i..i+3][j] 共 4 個 Doubles (pd = Packed Double)</code><br/>' +
+                '<code>vbroadcastsd (%rcx), %ymm1   # 將 B[k][j] 廣播複製成 4 份填入 256-bit %ymm1</code><br/>' +
+                '<code>vmulpd (%rax), %ymm1, %ymm1  # 4 個 A[i..i+3][k] 與 B[k][j] 同步相乘</code><br/>' +
+                '<code>vaddpd %ymm1, %ymm0, %ymm0   # 4 個乘積同步累加至 %ymm0 (實測 3.85× 加速！)</code>'
+        }
+      };
+
+      const avxModeBar = document.getElementById('avxModeBar');
+      avxModeBar.querySelectorAll('.sim-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          avxModeBar.querySelectorAll('.sim-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          const d = avxModes[btn.dataset.avx];
+          document.getElementById('avxModeBadge').textContent = d.badge;
+          document.getElementById('avxCodeBox').innerHTML = d.code;
+        });
+      });
+
+      goTo(0);
+    })();
+  </script>
+</body>
+</html>

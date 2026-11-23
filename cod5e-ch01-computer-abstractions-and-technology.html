@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chapter 1: Computer Abstractions and Technology — 計算機結構 LLM Wiki 互動簡報</title>
+  <style>
+    :root {
+      --bg: #f3f4f6;
+      --bg-elev: #fafbfc;
+      --bg-card: #eff1f4;
+      --bg-card-hover: #e7eaee;
+      --bg-subtle: #e9ecf0;
+      --border: rgba(45, 52, 60, 0.08);
+      --border-strong: rgba(45, 52, 60, 0.16);
+      --text: #2e343b;
+      --text-muted: #66707c;
+      --accent: #c96e43;
+      --accent-soft: rgba(201, 110, 67, 0.10);
+      --accent-mid: rgba(201, 110, 67, 0.22);
+      --accent-border: rgba(201, 110, 67, 0.34);
+      --m-blue: #5e7c96;
+      --m-blue-bg: rgba(94, 124, 150, 0.12);
+      --m-plum: #7f6c8e;
+      --m-plum-bg: rgba(127, 108, 142, 0.12);
+      --m-ochre: #b38148;
+      --m-ochre-bg: rgba(179, 129, 72, 0.12);
+      --m-sage: #58826f;
+      --m-sage-bg: rgba(88, 130, 111, 0.12);
+      --m-rose: #b46368;
+      --m-rose-bg: rgba(180, 99, 104, 0.12);
+      --code-bg: #e9ecef;
+      --code-text: #343b44;
+      --shadow: 0 8px 28px rgba(30, 38, 48, 0.05);
+      --font-sans: "Inter", "Segoe UI", "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, -apple-system, sans-serif;
+      --font-mono: "JetBrains Mono", "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg: #1b1e22;
+        --bg-elev: #22262b;
+        --bg-card: #292e35;
+        --bg-card-hover: #313740;
+        --bg-subtle: #2d333b;
+        --border: rgba(220, 226, 234, 0.07);
+        --border-strong: rgba(220, 226, 234, 0.14);
+        --text: #d7dce2;
+        --text-muted: #909aa6;
+        --accent: #dc865c;
+        --accent-soft: rgba(220, 134, 92, 0.13);
+        --accent-mid: rgba(220, 134, 92, 0.24);
+        --accent-border: rgba(220, 134, 92, 0.36);
+        --m-blue: #89a6c2;
+        --m-blue-bg: rgba(137, 166, 194, 0.14);
+        --m-plum: #a895b8;
+        --m-plum-bg: rgba(168, 149, 184, 0.14);
+        --m-ochre: #cea16c;
+        --m-ochre-bg: rgba(206, 161, 108, 0.14);
+        --m-sage: #82ad98;
+        --m-sage-bg: rgba(130, 173, 152, 0.14);
+        --m-rose: #ce8287;
+        --m-rose-bg: rgba(206, 130, 135, 0.14);
+        --code-bg: #181b1f;
+        --code-text: #cdd4dd;
+        --shadow: 0 12px 32px rgba(0, 0, 0, 0.22);
+      }
+    }
+
+    :root[data-theme="dark"] {
+      --bg: #1b1e22;
+      --bg-elev: #22262b;
+      --bg-card: #292e35;
+      --bg-card-hover: #313740;
+      --bg-subtle: #2d333b;
+      --border: rgba(220, 226, 234, 0.07);
+      --border-strong: rgba(220, 226, 234, 0.14);
+      --text: #d7dce2;
+      --text-muted: #909aa6;
+      --accent: #dc865c;
+      --accent-soft: rgba(220, 134, 92, 0.13);
+      --accent-mid: rgba(220, 134, 92, 0.24);
+      --accent-border: rgba(220, 134, 92, 0.36);
+      --m-blue: #89a6c2;
+      --m-blue-bg: rgba(137, 166, 194, 0.14);
+      --m-plum: #a895b8;
+      --m-plum-bg: rgba(168, 149, 184, 0.14);
+      --m-ochre: #cea16c;
+      --m-ochre-bg: rgba(206, 161, 108, 0.14);
+      --m-sage: #82ad98;
+      --m-sage-bg: rgba(130, 173, 152, 0.14);
+      --m-rose: #ce8287;
+      --m-rose-bg: rgba(206, 130, 135, 0.14);
+      --code-bg: #181b1f;
+      --code-text: #cdd4dd;
+      --shadow: 0 12px 32px rgba(0, 0, 0, 0.22);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      height: 100%; width: 100%;
+      background: var(--bg); color: var(--text);
+      font-family: var(--font-sans);
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+      transition: background 0.25s ease, color 0.25s ease;
+    }
+
+    .topbar {
+      position: fixed; top: 0; left: 0; right: 0; height: 46px;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 24px; background: var(--bg);
+      border-bottom: 1px solid var(--border); z-index: 30;
+    }
+    .brand { display: flex; align-items: center; gap: 9px; font-weight: 600; font-size: 0.86rem; }
+    .brand-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); display: inline-block; }
+    .brand .pill { font-size: 0.7rem; padding: 2px 8px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+    .top-controls { display: flex; align-items: center; gap: 7px; }
+
+    .btn {
+      background: var(--bg-card); color: var(--text);
+      border: 1px solid transparent; border-radius: 7px;
+      padding: 5px 11px; font-size: 0.78rem; font-weight: 500;
+      font-family: var(--font-sans); cursor: pointer;
+      display: inline-flex; align-items: center; gap: 5px;
+      transition: background 0.16s ease, color 0.16s ease, border-color 0.16s ease;
+      text-decoration: none;
+    }
+    .btn:hover:not(:disabled) { background: var(--bg-card-hover); border-color: var(--border-strong); }
+    .btn:disabled { opacity: 0.42; cursor: default; }
+    .btn.active { background: var(--accent-soft); border-color: var(--accent-border); color: var(--accent); font-weight: 600; }
+
+    .deck {
+      position: fixed; top: 46px; bottom: 48px; left: 0; right: 0;
+      display: flex; align-items: center; justify-content: center;
+      padding: 14px 26px;
+    }
+    .slide {
+      display: none; width: 100%; max-width: 1240px; height: 100%; max-height: 740px;
+      background: var(--bg-elev); border: 1px solid var(--border);
+      border-radius: 14px; box-shadow: var(--shadow);
+      padding: 24px 34px; overflow-y: auto;
+      flex-direction: column; gap: 14px;
+      animation: fadeSlide 0.2s ease;
+    }
+    .slide.active { display: flex; }
+    @keyframes fadeSlide { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+    .slide-header {
+      display: flex; justify-content: space-between; align-items: flex-end;
+      border-bottom: 1px solid var(--border); padding-bottom: 10px; gap: 14px; flex-shrink: 0;
+    }
+    .slide-kicker { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); font-weight: 700; margin-bottom: 3px; }
+    .slide h1 { font-size: 1.48rem; line-height: 1.24; font-weight: 700; letter-spacing: -0.015em; }
+    .slide-source { font-size: 0.71rem; color: var(--text-muted); font-family: var(--font-mono); background: var(--bg-card); padding: 3px 9px; border-radius: 6px; white-space: nowrap; }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .grid-12 { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 16px; }
+    .grid-21 { display: grid; grid-template-columns: 0.85fr 1.15fr; gap: 16px; }
+
+    .card { background: var(--bg-card); border-radius: 11px; padding: 14px 16px; }
+    .card h3 { font-size: 0.9rem; font-weight: 700; margin-bottom: 8px; color: var(--text); display: flex; align-items: center; gap: 7px; }
+    .card h3::before { content: ""; width: 3px; height: 13px; border-radius: 2px; background: var(--accent); display: inline-block; flex-shrink: 0; }
+    .card h3.muted-bar::before { background: var(--text-muted); }
+    .card h3.sage::before { background: var(--m-sage); }
+    .card h3.rose::before { background: var(--m-rose); }
+    .card h3.plum::before { background: var(--m-plum); }
+
+    ul.clean { list-style: none; display: flex; flex-direction: column; gap: 6px; font-size: 0.84rem; line-height: 1.5; }
+    ul.clean li { padding-left: 13px; position: relative; }
+    ul.clean li::before { content: ""; width: 4.5px; height: 4.5px; border-radius: 50%; background: var(--accent); position: absolute; left: 0; top: 0.58em; opacity: 0.85; }
+
+    code, .mono { font-family: var(--font-mono); font-size: 0.84em; background: var(--bg-subtle); padding: 1px 5px; border-radius: 4px; color: var(--accent); }
+    pre { background: var(--code-bg); color: var(--code-text); padding: 10px 12px; border-radius: 9px; font-family: var(--font-mono); font-size: 0.76rem; line-height: 1.48; overflow-x: auto; border: 1px solid var(--border); }
+
+    table.data { width: 100%; border-collapse: collapse; font-size: 0.77rem; }
+    table.data th, table.data td { padding: 5px 8px; border-bottom: 1px solid var(--border); text-align: left; }
+    table.data th { font-weight: 600; color: var(--text-muted); font-size: 0.73rem; border-bottom: 1px solid var(--border-strong); }
+    table.data tbody tr:last-child td { border-bottom: none; }
+    table.data td.center, table.data th.center { text-align: center; }
+
+    .tag { display: inline-block; padding: 1.5px 8px; border-radius: 999px; font-size: 0.7rem; font-weight: 600; }
+    .tag.orange { background: var(--accent-soft); color: var(--accent); }
+    .tag.neutral { background: var(--bg-subtle); color: var(--text-muted); }
+    .tag.sage { background: var(--m-sage-bg); color: var(--m-sage); }
+    .tag.rose { background: var(--m-rose-bg); color: var(--m-rose); }
+    .tag.blue { background: var(--m-blue-bg); color: var(--m-blue); }
+    .tag.ochre { background: var(--m-ochre-bg); color: var(--m-ochre); }
+
+    .callout { padding: 9px 13px; border-radius: 9px; border-left: 3px solid var(--accent); background: var(--accent-soft); font-size: 0.81rem; line-height: 1.5; }
+    .callout.neutral { border-left-color: var(--text-muted); background: var(--bg-elev); }
+    .callout.sage { border-left-color: var(--m-sage); background: var(--m-sage-bg); }
+    .callout.rose { border-left-color: var(--m-rose); background: var(--m-rose-bg); }
+
+    .cover {
+      justify-content: center; align-items: flex-start;
+      background: radial-gradient(circle at 92% 14%, var(--accent-soft), transparent 42%), var(--bg-elev);
+    }
+    .cover-accent-line { width: 44px; height: 3px; border-radius: 999px; background: var(--accent); margin: 4px 0 2px; }
+    .cover-title { font-size: 2.35rem; font-weight: 800; line-height: 1.18; margin: 6px 0 8px; letter-spacing: -0.025em; }
+    .cover-sub { font-size: 0.96rem; color: var(--text-muted); max-width: 780px; line-height: 1.62; margin-bottom: 16px; }
+
+    .roadmap { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; width: 100%; }
+    .roadmap-item { background: var(--bg-card); border: 1px solid transparent; border-radius: 11px; padding: 14px; cursor: pointer; transition: all 0.16s ease; }
+    .roadmap-item:hover { background: var(--bg-card-hover); border-color: var(--accent-border); transform: translateY(-2px); }
+    .roadmap-item .sec { font-family: var(--font-mono); font-size: 0.72rem; color: var(--accent); font-weight: 700; }
+    .roadmap-item .name { font-weight: 700; font-size: 0.9rem; margin-top: 4px; }
+    .roadmap-item .desc { font-size: 0.76rem; color: var(--text-muted); margin-top: 4px; line-height: 1.44; }
+
+    .btn-group { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+    .bar-row { display: grid; grid-template-columns: 128px 1fr 84px; align-items: center; gap: 10px; margin: 6px 0; font-size: 0.8rem; }
+    .bar-track { height: 13px; background: var(--bg-elev); border-radius: 999px; overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: 999px; transition: width 0.35s ease; }
+
+    .footer {
+      position: fixed; bottom: 0; left: 0; right: 0; height: 48px;
+      background: var(--bg); border-top: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 24px; gap: 14px; z-index: 30;
+    }
+    .progress-wrap { flex: 1; max-width: 500px; display: flex; align-items: center; gap: 10px; }
+    .progress-bar { flex: 1; height: 5px; background: var(--bg-card-hover); border-radius: 999px; overflow: hidden; cursor: pointer; }
+    .progress-fill { height: 100%; background: var(--accent); width: 10%; transition: width 0.22s ease; }
+    .slide-counter { font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-muted); min-width: 56px; text-align: right; }
+    .hint { font-size: 0.73rem; color: var(--text-muted); }
+
+    .overview-modal {
+      position: fixed; inset: 46px 0 48px 0;
+      background: color-mix(in srgb, var(--bg) 96%, transparent);
+      backdrop-filter: blur(8px); z-index: 40; display: none;
+      padding: 22px 32px; overflow-y: auto;
+    }
+    .overview-modal.open { display: block; }
+    .overview-grid { max-width: 1220px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(215px, 1fr)); gap: 10px; }
+    .overview-card { background: var(--bg-elev); border: 1px solid var(--border); border-radius: 10px; padding: 12px; cursor: pointer; transition: all 0.15s ease; }
+    .overview-card:hover, .overview-card.current { border-color: var(--accent); background: var(--accent-soft); }
+    .overview-card .num { font-family: var(--font-mono); font-size: 0.72rem; color: var(--accent); font-weight: 700; }
+    .overview-card .title { font-weight: 600; font-size: 0.84rem; margin-top: 3px; line-height: 1.38; }
+    .overview-card .sec { font-size: 0.71rem; color: var(--text-muted); margin-top: 4px; }
+    svg text { font-family: var(--font-sans); }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-dot"></span>
+      <span>計算機結構 LLM Wiki</span>
+      <span class="pill">COD 5th Ed. · Ch1</span>
+    </div>
+    <div class="top-controls">
+      <a class="btn" href="index.html">← 回全冊總網</a>
+      <button class="btn" id="btn-overview" title="快捷鍵 O">總覽 (O)</button>
+      <button class="btn" id="btn-theme" title="快捷鍵 T">主題：跟隨系統</button>
+      <button class="btn" id="btn-full" title="快捷鍵 F">全螢幕 (F)</button>
+    </div>
+  </header>
+
+  <main class="deck" id="deck">
+
+    <!-- SLIDE 01: COVER -->
+    <section class="slide cover active" data-title="Chapter 1 封面與學習路線圖" data-section="§1.1–§1.10 總覽">
+      <span class="tag orange">Computer Organization and Design · 5th Edition</span>
+      <h1 class="cover-title">Chapter 1: Computer Abstractions &amp; Technology<br/>從八大設計理念、IC 晶圓成本到 CPU 效能鐵律與功耗牆</h1>
+      <div class="cover-accent-line"></div>
+      <p class="cover-sub">
+        本簡報完整編譯自 LLM Wiki 之 Chapter 1 知識庫（涵蓋 §1.1–§1.10 全 49 頁教材細節）。
+        建立全書系統觀：電腦世代與 PostPC 分類、八大核心理念、軟硬體分層（ISA/ABI）、晶圓良率與成本公式、CPU Time Iron Law、Power Wall、SPEC 基準測試與 Amdahl's Law。
+      </p>
+      <div class="roadmap">
+        <div class="roadmap-item" onclick="goTo(1)">
+          <div class="sec">§1.1 – §1.3 · Slides 02–03</div>
+          <div class="name">Abstractions &amp; 8 Great Ideas</div>
+          <div class="desc">電腦分類、PostPC PMD/WSC、八大理念與軟硬體三層轉換</div>
+        </div>
+        <div class="roadmap-item" onclick="goTo(3)">
+          <div class="sec">§1.4 – §1.5 · Slide 04</div>
+          <div class="name">Components &amp; IC Wafer Cost</div>
+          <div class="desc">五大組件、ISA vs ABI、矽晶圓製造流程與 Die Area³ 成本公式</div>
+        </div>
+        <div class="roadmap-item" onclick="goTo(4)">
+          <div class="sec">§1.6 – §1.7 · Slides 05–07</div>
+          <div class="name">CPU Time Iron Law &amp; Power Wall</div>
+          <div class="desc">互動鐵律實驗室、加權 CPI、CMOS CV²f 動態功耗與降壓分析</div>
+        </div>
+        <div class="roadmap-item" onclick="goTo(7)">
+          <div class="sec">§1.8 – §1.10 · Slides 08–10</div>
+          <div class="name">Multicore, SPEC &amp; Amdahl's Law</div>
+          <div class="desc">多核轉折、Core i7 SPEC 數據、互動 Amdahl 極限與 MIPS 指標陷阱</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 02: CLASSES & 8 GREAT IDEAS -->
+    <section class="slide" data-title="電腦世代分類、PostPC 與 Eight Great Ideas" data-section="§1.1 – §1.2">
+      <div class="slide-header">
+        <div>
+          <div class="slide-kicker">§1.1 – §1.2 Computer Classes &amp; Architecture Philosophy</div>
+          <h1>電腦四大類別、PostPC 時代與計算機結構八大偉大理念</h1>
+        </div>
+        <div class="slide-source">wiki/concepts/computer-abstractions-and-eight-great-ideas.md</div>
+      </div>
+      <div class="grid-12">
+        <div class="card">
+          <h3>Eight Great Ideas in Computer Architecture（§1.2 Slide 9）</h3>
+          <table class="data">
+            <thead><tr><th>理念名稱</th><th>核心設計精神</th><th>本書對應實例</th></tr></thead>
+            <tbody>
+              <tr><td><strong>1. Design for Moore's Law</strong></td><td>電晶體每 18–24 月翻倍，須針對專案完成時的技術設計</td><td>Ch1 製程演進、Ch4 複雜管線</td></tr>
+              <tr><td><strong>2. Use Abstraction</strong></td><td>以高階抽象隱藏底層細節，提升軟硬體設計生產力</td><td>Ch1/Ch2 ISA 與 ABI 分層</td></tr>
+              <tr><td><strong>3. Make the Common Case Fast</strong></td><td>優先加速最常見情況，比最佳化罕見情況更簡單有效</td><td>Ch2 <code>addi/$zero</code>、Ch1 Amdahl's Law</td></tr>
+              <tr><td><strong>4. Performance via Parallelism</strong></td><td>透過多層級平行運算推升效能</td><td>Ch3 SIMD、Ch4 ILP、Ch6 Multicore/GPU</td></tr>
+              <tr><td><strong>5. Performance via Pipelining</strong></td><td>將指令拆成連貫階段重疊執行以提高 Throughput</td><td>Ch4 MIPS 5-Stage Pipeline</td></tr>
+              <tr><td><strong>6. Performance via Prediction</strong></td><td>先猜測並提前執行（假設猜對率高且恢復代價可控）</td><td>Ch4 2-bit Predictor、Speculation</td></tr>
+              <tr><td><strong>7. Hierarchy of Memories</strong></td><td>以小而快 SRAM 快取＋大而慢 DRAM/Disk 兼顧速度與容量</td><td>Ch5 L1/L2/L3 Cache、Virtual Memory</td></tr>
+              <tr><td><strong>8. Dependability via Redundancy</strong></td><td>透過冗餘元件偵測並自動修正故障，維持連續服務</td><td>Ch5 Hamming SEC/DEC (ECC)</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card">
+          <h3 class="muted-bar">傳統四類電腦 vs. PostPC 時代（§1.1）</h3>
+          <ul class="clean">
+            <li><strong>Personal Computer (PC)</strong>：通用軟體，核心為 Cost/Performance 取捨。</li>
+            <li><strong>Server</strong>：網路服務，強調高容量、高吞吐與高可靠性（Reliability）。</li>
+            <li><strong>Supercomputer</strong>：高階科學工程運算，極致效能但市佔極小。</li>
+            <li><strong>Embedded Computer</strong>：隱藏於汽車／家電中，受嚴格功耗與成本限制。</li>
+            <li><strong>PostPC 雙核心主角（Slides 5–6）</strong>：
+              <br/>• <strong>PMD (Personal Mobile Device)</strong>：電池供電智慧手機／平板，銷量超越 PC。
+              <br/>• <strong>Cloud / WSC (Warehouse Scale Computers)</strong>：支撐 Amazon/Google 之 <strong>SaaS</strong>。
+            </li>
+          </ul>
+          <div class="callout neutral" style="margin-top:8px;">
+            <strong>決定效能的四大層次（Slide 8）</strong>：Algorithm（運算次數）→ Language/Compiler/ISA（機器指令數 IC）→ Processor/Memory（執行速度 CPI &amp; Tc）→ I/O &amp; OS。
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 03: BELOW YOUR PROGRAM & UNDER THE COVERS -->
+    <section class="slide" data-title="Below Your Program & Under the Covers" data-section="§1.3 – §1.4">
+      <div class="slide-header">
+        <div>
+          <div class="slide-kicker">§1.3 – §1.4 Software/Hardware Layers &amp; Five Classic Components</div>
+          <h1>軟硬體分層轉換、計算機五大組件與 ISA / ABI 分界</h1>
+        </div>
+        <div class="slide-source">wiki/concepts/computer-abstractions-and-eight-great-ideas.md</div>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <h3>程式語言三層轉換與系統軟體（§1.3 Slides 10–11）</h3>
+          <svg viewBox="0 0 500 132" style="width:100%;margin-bottom:8px;">
+            <rect x="8" y="20" width="136" height="82" rx="8" fill="var(--m-blue-bg)" stroke="var(--m-blue)" stroke-width="1.5"/>
+            <text x="76" y="42" text-anchor="middle" fill="var(--m-blue)" font-size="11.5" font-weight="700">High-Level (C)</text>
+            <text x="76" y="62" text-anchor="middle" fill="var(--text)" font-size="10" font-family="monospace">temp = v[k];</text>
+            <text x="76" y="78" text-anchor="middle" fill="var(--text)" font-size="10" font-family="monospace">v[k] = v[k+1];</text>
+
+            <line x1="144" y1="61" x2="180" y2="61" stroke="var(--accent)" stroke-width="1.6"/>
+            <polygon points="180,57 188,61 180,65" fill="var(--accent)"/>
+            <text x="166" y="51" text-anchor="middle" fill="var(--accent)" font-size="9.5" font-weight="700">Compiler</text>
+
+            <rect x="188" y="20" width="136" height="82" rx="8" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"/>
+            <text x="256" y="42" text-anchor="middle" fill="var(--accent)" font-size="11.5" font-weight="700">Assembly (MIPS)</text>
+            <text x="256" y="62" text-anchor="middle" fill="var(--text)" font-size="10" font-family="monospace">lw 15, 0(2)</text>
+            <text x="256" y="78" text-anchor="middle" fill="var(--text)" font-size="10" font-family="monospace">sw 16, 0(2)</text>
+
+            <line x1="324" y1="61" x2="360" y2="61" stroke="var(--m-sage)" stroke-width="1.6"/>
+            <polygon points="360,57 368,61 360,65" fill="var(--m-sage)"/>
+            <text x="346" y="51" text-anchor="middle" fill="var(--m-sage)" font-size="9.5" font-weight="700">Assembler</text>
+
+            <rect x="368" y="20" width="124" height="82" rx="8" fill="var(--m-sage-bg)" stroke="var(--m-sage)" stroke-width="1.5"/>
+            <text x="430" y="42" text-anchor="middle" fill="var(--m-sage)" font-size="11.5" font-weight="700">Binary Machine</text>
+            <text x="430" y="62" text-anchor="middle" fill="var(--text)" font-size="9.5" font-family="monospace">1000110001100010</text>
+            <text x="430" y="78" text-anchor="middle" fill="var(--text)" font-size="9.5" font-family="monospace">1010110011110010</text>
+          </svg>
+          <ul class="clean">
+            <li><strong>Systems Software 雙核心</strong>：<strong>Compiler</strong>（HLL → Machine Code）＋ <strong>Operating System</strong>（管理 I/O、配置記憶體與儲存、多工排程共享資源）。</li>
+            <li><strong>ISA（Instruction Set Architecture）</strong>：硬體與底層軟體的分界介面，讓不同微架構實作（Implementation）可執行相同二進位執行檔。</li>
+            <li><strong>ABI（Application Binary Interface）</strong>：<strong>ISA ＋ OS 系統軟體呼叫介面</strong>。</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3 class="sage">計算機五大經典組件與實體拆解（§1.4 Slides 12–20）</h3>
+          <ul class="clean">
+            <li><strong>1. Input &amp; 2. Output</strong>：PostPC 以<strong>電容式多點觸控（Capacitive Multitouch）</strong>取代鍵鼠；LCD 螢幕像素鏡射自 <strong>Frame Buffer</strong> 頁框緩衝記憶體。</li>
+            <li><strong>3. Memory（分層儲存）</strong>：
+              <br/>• CPU 內建高速 <strong>Cache (SRAM)</strong> ＋ 揮發性主記憶體 <strong>DRAM</strong>。
+              <br/>• 非揮發次級儲存：Magnetic Disk、<strong>Flash Memory</strong>（iPad/PMD 主力）、光碟。
+            </li>
+            <li><strong>4. Datapath（The Brawn）&amp; 5. Control（The Brain）</strong>：分別負責算術資料運算與指揮各組件時序（如 Apple A5 SoC 內整合 2 顆 ARM 核心）。</li>
+            <li><strong>Networks</strong>：LAN (Ethernet)、WAN (Internet)、Wireless (WiFi/Bluetooth)。</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 04: IC MANUFACTURING & COST -->
+    <section class="slide" data-title="半導體演進、矽晶圓製造與晶片成本公式" data-section="§1.5">
+      <div class="slide-header">
+        <div>
+          <div class="slide-kicker">§1.5 Technologies for Processors &amp; Memory</div>
+          <h1>五代電子技術躍升、矽晶圓 IC 製造流程與良率／成本公式</h1>
+        </div>
+        <div class="slide-source">wiki/formulas/cpu-performance-iron-law-and-power-wall.md</div>
+      </div>
+      <div class="card" style="padding:10px 14px;">
+        <svg viewBox="0 0 960 94" style="width:100%;">
+          <rect x="8" y="18" width="106" height="56" rx="7" fill="var(--bg-elev)" stroke="var(--border-strong)" stroke-width="1.4"/>
+          <text x="61" y="42" text-anchor="middle" fill="var(--text)" font-size="11" font-weight="600">Silicon Ingot</text>
+          <text x="61" y="59" text-anchor="middle" fill="var(--text-muted)" font-size="9.5">矽晶柱 → Slicer</text>
+
+          <line x1="114" y1="46" x2="138" y2="46" stroke="var(--text-muted)" stroke-width="1.5"/>
+          <rect x="138" y="18" width="132" height="56" rx="7" fill="var(--m-blue-bg)" stroke="var(--m-blue)" stroke-width="1.4"/>
+          <text x="204" y="42" text-anchor="middle" fill="var(--m-blue)" font-size="11" font-weight="700">Blank → Patterned</text>
+          <text x="204" y="59" text-anchor="middle" fill="var(--text)" font-size="9.5">20–40 道微影蝕刻步驟</text>
+
+          <line x1="270" y1="46" x2="294" y2="46" stroke="var(--text-muted)" stroke-width="1.5"/>
+          <rect x="294" y="18" width="128" height="56" rx="7" fill="var(--m-ochre-bg)" stroke="var(--m-ochre)" stroke-width="1.4"/>
+          <text x="358" y="42" text-anchor="middle" fill="var(--m-ochre)" font-size="11" font-weight="700">Wafer Tester</text>
+          <text x="358" y="59" text-anchor="middle" fill="var(--text)" font-size="9.5">晶圓測試標記瑕疵晶粒</text>
+
+          <line x1="422" y1="46" x2="446" y2="46" stroke="var(--text-muted)" stroke-width="1.5"/>
+          <rect x="446" y="18" width="136" height="56" rx="7" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.4"/>
+          <text x="514" y="42" text-anchor="middle" fill="var(--accent)" font-size="11" font-weight="700">Dicer → Tested Dies</text>
+          <text x="514" y="59" text-anchor="middle" fill="var(--text)" font-size="9.5">切割並篩出良品 (Yield)</text>
+
+          <line x1="582" y1="46" x2="606" y2="46" stroke="var(--text-muted)" stroke-width="1.5"/>
+          <rect x="606" y="18" width="154" height="56" rx="7" fill="var(--m-plum-bg)" stroke="var(--m-plum)" stroke-width="1.4"/>
+          <text x="683" y="42" text-anchor="middle" fill="var(--m-plum)" font-size="11" font-weight="700">Bond Die to Package</text>
+          <text x="683" y="59" text-anchor="middle" fill="var(--text)" font-size="9.5">封裝打線 → Part Tester</text>
+
+          <line x1="760" y1="46" x2="784" y2="46" stroke="var(--text-muted)" stroke-width="1.5"/>
+          <rect x="784" y="18" width="166" height="56" rx="7" fill="var(--m-sage-bg)" stroke="var(--m-sage)" stroke-width="1.4"/>
+          <text x="867" y="42" text-anchor="middle" fill="var(--m-sage)" font-size="11" font-weight="700">Ship (e.g. Core i7)</text>
+          <text x="867" y="59" text-anchor="middle" fill="var(--text)" font-size="9.5">300mm / 32nm / 280 dies</text>
+        </svg>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <h3>五代電子技術性價比演進（Slide 21）</h3>
+          <table class="data">
+            <thead><tr><th class="center">Year</th><th>Technology</th><th class="center">Relative Perf / Cost</th></tr></thead>
+            <tbody>
+              <tr><td class="center">1951</td><td>Vacuum tube（真空管）</td><td class="center mono">1</td></tr>
+              <tr><td class="center">1965</td><td>Transistor（電晶體）</td><td class="center mono">35</td></tr>
+              <tr><td class="center">1975</td><td>Integrated circuit (IC)</td><td class="center mono">900</td></tr>
+              <tr><td class="center">1995</td><td>Very large scale IC (VLSI)</td><td class="center mono">2,400,000</td></tr>
+              <tr><td class="center">2013</td><td>Ultra large scale IC (ULSI)</td><td class="center mono" style="color:var(--accent);font-weight:700;">250,000,000,000</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card">
+          <h3 class="rose">IC 成本與良率非線性公式（Slide 25）</h3>
+          <pre>Cost per die   = Cost per wafer / (Dies per wafer × Yield)
+Dies per wafer ≈ Wafer area / Die area
+Yield          = 1 / (1 + (Defects per area × Die area / 2))²</pre>
+          <div class="callout" style="margin-top:8px;">
+            <strong>關鍵考點</strong>：因為 <code>Dies per wafer ∝ 1 / Die area</code> 且 <code>Yield ∝ 1 / (Die area)²</code>，當晶片面積變大時，<strong>單顆良品晶片成本約與 <code>(Die area)³</code> 成正比暴增</strong>！
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 05: DEFINING PERFORMANCE & IRON LAW -->
+    <section class="slide" data-title="定義效能：Response Time vs. Throughput 與 CPU Time 鐵律" data-section="§1.6">
+      <div class="slide-header">
+        <div>
+          <div class="slide-kicker">§1.6 Defining Performance &amp; The Iron Law</div>
+          <h1>Response Time vs. Throughput、相對效能與 CPU Time 鐵律</h1>
+        </div>
+        <div class="slide-source">wiki/formulas/cpu-performance-iron-law-and-power-wall.md</div>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <h3>1. Response Time vs. Throughput（Slides 26–29）</h3>
+          <ul class="clean">
+            <li><strong>Response Time (Execution Time)</strong>：完成<strong>單一任務</strong>所需總時間。</li>
+            <li><strong>Throughput (Bandwidth)</strong>：單位時間內完成的<strong>總任務數</strong>。
+              <br/>• <em>換更快的 CPU</em>：同時改善 Response Time 與 Throughput。
+              <br/>• <em>加更多顆 CPU</em>：主要提升 Throughput（亦減少排隊等待而間接改善回應時間）。
+            </li>
+            <li><strong>相對效能定義</strong>：<code>Performance_X = 1 / Execution_Time_X</code><br/>
+              「<strong>X 比 Y 快 n 倍</strong>」⟺ () / () = n（例：A 跑 10s、B 跑 15s ⟹ 15/10 = 1.5×）。
+            </li>
+            <li><strong>Elapsed Time vs. CPU Time</strong>：Elapsed 包含 I/O 與 OS 多工干擾；處理器評估以純 <strong>CPU Time（User + System）</strong> 為唯一黃金標準。</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>2. The Iron Law of Processor Performance（Slides 30–37）</h3>
+          <pre>CPU Time = CPU Clock Cycles × Clock Cycle Time (Tc)
+         = CPU Clock Cycles / Clock Rate (f)
+
+CPU Clock Cycles = Instruction Count (IC) × Average CPI
+                 = Σ (CPI_i × IC_i)
+
+╔═════════════════════════════════════════════════════════════╗
+║ CPU Time = Instruction Count × CPI × Clock Cycle Time       ║
+║          = (Instruction Count × CPI) / Clock Rate           ║
+╚═════════════════════════════════════════════════════════════╝</pre>
+          <table class="data" style="margin-top:8px;">
+            <thead><tr><th>系統層次 (Slide 37)</th><th>影響的鐵律因子</th></tr></thead>
+            <tbody>
+              <tr><td><strong>Algorithm</strong></td><td>影響 <code>IC</code>，亦可能影響 <code>CPI</code>（如 Cache 局部性）</td></tr>
+              <tr><td><strong>Programming Language / Compiler</strong></td><td>同時影響 <code>IC</code> 與 <code>CPI</code></td></tr>
+              <tr><td><strong>Instruction Set Architecture (ISA)</strong></td><td><strong>同時影響全部三項：<code>IC</code>、<code>CPI</code>、<code>Tc</code>！</strong></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 06: INTERACTIVE IRON LAW & WEIGHTED CPI LAB -->
+    <section class="slide" data-title="互動實驗室：CPU Time Iron Law 與加權 CPI" data-section="§1.6 · Interactive #1">
+      <div class="slide-header">
+        <div>
+          <div class="slide-kicker">§1.6 Performance Calculations · Interactive Explorer #1</div>
+          <h1>CPU Time 鐵律與加權平均 CPI 三大經典例題實驗室</h1>
+        </div>
+        <div class="slide-source">wiki/formulas/cpu-performance-iron-law-and-power-wall.md</div>
+      </div>
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
+          <h3 style="margin:0;">點選切換教材三大計算題型（Slides 32, 34, 36）</h3>
+          <div class="btn-group" style="margin:0;">
+            <button class="btn active" id="iron-btn-1" onclick="selectIronCase('c1')">例題 1：時脈 vs 週期數取捨 (2GHz → 4GHz)</button>
+            <button class="btn" id="iron-btn-2" onclick="selectIronCase('c2')">例題 2：同 ISA 雙機對決 (250ps vs 500ps)</button>
+            <button class="btn" id="iron-btn-3" onclick="selectIronCase('c3')">例題 3：編譯序列加權 CPI (IC 多反而更快!)</button>
+          </div>
+        </div>
+        <div class="grid-2" id="iron-view"></div>
+      </div>
+      <div class="callout">
+        <strong>核心觀念（Slide 36 &amp; Ch2 Slide 74）</strong>：<strong>永遠不可單看 Instruction Count 或單看 CPI 來斷言快慢！</strong>必須將 <code>IC × CPI × Tc</code> 三者相乘得出真實 <strong>CPU Time</strong>。
+      </div>
+    </section>
+
+    <!-- SLIDE 07: THE POWER WALL -->
+    <section class="slide" data-title="The Power Wall：CMOS 動態功耗與降壓降頻" data-section="§1.7">
+      <div class="slide-header">
+        <div>
+          <div class="slide-kicker">§1.7 The Power Wall</div>
+          <h1>CMOS 動態功耗公式（C × V² × f）與 1000× 時脈的歷史極限</h1>
+        </div>
+        <div class="slide-source">wiki/formulas/cpu-performance-iron-law-and-power-wall.md</div>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <h3>CMOS 動態功耗與歷史演進（Slide 38）</h3>
+          <pre>Power = Capacitive load × Voltage² × Frequency switched
+      = C × V² × f</pre>
+          <ul class="clean" style="margin-top:8px;">
+            <li><strong>歷史謎題</strong>：從 80286 (1982, 12.5MHz, 3.3W) 到 Pentium 4 Prescott (2004, 3600MHz, 103W)，時脈暴增 <strong>1000 倍</strong>，為何功耗僅上升 <strong>30 倍</strong>？</li>
+            <li><strong>答案</strong>：工作電壓從 <strong>5V 一路調降至 1V</strong>（<code>V²</code> 平方項帶來 25 倍省電紅利！）。</li>
+            <li><strong>為何撞上 Power Wall？</strong>當電壓接近 1V 後，再降壓會使電晶體<strong>漏電流（Leakage Power）</strong>失控；且空冷散熱極限約鎖死在 100–130W，無法再靠拉高時脈提升效能！</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3 class="sage">內嵌計算例題：降壓 15% ＋ 降頻 15% 的省電威力（Slide 39）</h3>
+          <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:8px;">
+            題目：新製程 CPU 的電容負載為舊 CPU 的 85%（<code>C_new = 0.85 C_old</code>），同時將電壓與時脈頻率各調降 15%（<code>V_new = 0.85 V_old</code>, <code>f_new = 0.85 f_old</code>），新功耗為舊功耗的幾倍？
+          </p>
+          <pre>Power_new / Power_old
+  = (0.85 C_old × (0.85 V_old)² × 0.85 f_old) / (C_old × V_old² × f_old)
+  = 0.85⁴
+  = 0.52200625 ≈ 52%</pre>
+          <div class="callout sage" style="margin-top:10px;">
+            <strong>結論</strong>：僅調降 15% 電壓與時脈，就能讓晶片總功耗<strong>直接砍半（降至 52%）</strong>，這正是多核心時代「以多顆中頻低壓核心取代單顆超高頻核心」的物理依據！
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 08: MULTICORE SHIFT & SPEC BENCHMARKS -->
+    <section class="slide" data-title="The Sea Change：單核至多核轉折與 SPEC 基準測試" data-section="§1.8">
+      <div class="slide-header">
+        <div>
+          <div class="slide-kicker">§1.8 The Sea Change &amp; Benchmarking</div>
+          <h1>單核效能成長三階段（52% → 22%/yr）與 SPEC CPU / SPECpower</h1>
+        </div>
+        <div class="slide-source">wiki/concepts/multiprocessor-shift-and-spec-benchmarks.md</div>
+      </div>
+      <div class="grid-12">
+        <div class="card">
+          <h3>SPEC CINT2006 on Intel Core i7 920（2.66 GHz, Tc = 0.376 ns，Slide 43）</h3>
+          <table class="data">
+            <thead><tr><th>Benchmark (領域)</th><th class="center">IC (×10⁹)</th><th class="center">CPI</th><th class="center">Time (s)</th><th class="center">Ref Time</th><th class="center">SPECratio</th></tr></thead>
+            <tbody>
+              <tr><td><code>perl</code> (字串直譯) / <code>bzip2</code> (壓縮)</td><td class="center">2252 / 2390</td><td class="center">0.60 / 0.70</td><td class="center">508 / 629</td><td class="center">9770 / 9650</td><td class="center">19.2 / 15.4</td></tr>
+              <tr><td><code>gcc</code> (C 編譯器) / <code>go</code> (圍棋)</td><td class="center">794 / 1274</td><td class="center">1.20 / 1.10</td><td class="center">358 / 527</td><td class="center">8050 / 10490</td><td class="center">22.5 / 19.9</td></tr>
+              <tr><td><strong><code>mcf</code> (組合最佳化 · 指標密集)</strong></td><td class="center">221</td><td class="center" style="color:var(--m-rose);font-weight:700;">2.66</td><td class="center">221</td><td class="center">9120</td><td class="center">41.2</td></tr>
+              <tr><td><code>hmmer</code> (基因) / <code>sjeng</code> (西洋棋)</td><td class="center">2616 / 1948</td><td class="center">0.60 / 0.80</td><td class="center">590 / 586</td><td class="center">9330 / 12100</td><td class="center">15.8 / 20.7</td></tr>
+              <tr><td><strong><code>libquantum</code> (量子模擬 · 規律)</strong></td><td class="center">659</td><td class="center" style="color:var(--m-sage);font-weight:700;">0.44</td><td class="center">109</td><td class="center">20720</td><td class="center" style="color:var(--accent);font-weight:700;">190.0</td></tr>
+              <tr><td><code>h264avc</code> (視訊) / <code>xalancbmk</code> (XML)</td><td class="center">3793 / 1045</td><td class="center">0.50 / 0.70</td><td class="center">713 / 275</td><td class="center">22130 / 6900</td><td class="center">31.0 / 25.1</td></tr>
+              <tr><td><strong><code>omnetpp</code> (網路模擬)</strong> / <code>astar</code></td><td class="center">367 / 1250</td><td class="center" style="color:var(--m-rose);font-weight:700;">2.10 / 1.00</td><td class="center">290 / 470</td><td class="center">6250 / 7020</td><td class="center">21.5 / 14.9</td></tr>
+              <tr><td><strong>Geometric Mean（幾何平均）</strong></td><td class="center" colspan="4">(∏ SPECratio<sub>i</sub>)<sup>1/12</sup>（不受基準機選擇影響！）</td><td class="center"><span class="tag orange">25.7</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card">
+          <h3 class="rose">單核成長三階段與多核挑戰（Slides 40–41）</h3>
+          <ul class="clean">
+            <li><strong>1978–1986 (25%/yr)</strong>：CISC 微碼時期（VAX）。</li>
+            <li><strong>1986–2003 (52%/yr)</strong>：RISC + Pipelining + Superscalar OoO 黃金時代。</li>
+            <li><strong>2003 後 (22%/yr)</strong>：受制於 <strong>Power Wall + ILP + Memory Latency</strong>，全面轉向 <strong>Multicore</strong>。</li>
+            <li><strong>ILP vs. Multicore</strong>：ILP 對軟體透明；Multicore 卻要求工程師<strong>顯式撰寫平行程式</strong>，客服 Load Balancing 與通訊同步開銷！</li>
+            <li><strong>SPECpower_ssj2008 (Xeon X5650)</strong>：量測 0%–100% 共 11 階負載，總效率 <code>4,787,166 / 1,922W = 2,490 ssj_ops/W</code>。</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 09: INTERACTIVE AMDAHL'S LAW & IDLE POWER -->
+    <section class="slide" data-title="互動模擬器：Amdahl's Law 與 Idle Power 分析" data-section="§1.10 · Interactive #2">
+      <div class="slide-header">
+        <div>
+          <div class="slide-kicker">§1.10 Fallacies &amp; Pitfalls · Interactive Explorer #2</div>
+          <h1>Amdahl's Law 局部加速極限與伺服器低負載耗電迷思</h1>
+        </div>
+        <div class="slide-source">wiki/exercises/ch01-performance-amdahl-and-mips-traps.md</div>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <h3>互動實驗：為何 80s/100s 的乘法永遠無法讓整體快 5 倍？</h3>
+          <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:8px;">
+            公式：<code>T_improved = T_affected / Factor + T_unaffected</code>（本例總時間 <code>100s</code>，乘法佔 <code>80s</code>，非乘法佔 <code>20s</code>）：
+          </p>
+          <div class="btn-group">
+            <button class="btn" onclick="setAmdahl(2, this)">乘法快 2×</button>
+            <button class="btn" onclick="setAmdahl(4, this)">乘法快 4×</button>
+            <button class="btn" onclick="setAmdahl(16, this)">乘法快 16×</button>
+            <button class="btn active" onclick="setAmdahl(999999, this)">乘法快 ∞× (求 5× 整體加速!)</button>
+          </div>
+          <div id="amdahl-box" class="callout rose" style="margin-top:8px;"></div>
+        </div>
+        <div class="card">
+          <h3 class="muted-bar">Fallacy: Low Power at Idle（Xeon X5650 實測，Slide 45 &amp; 47）</h3>
+          <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:8px;">
+            Google 資料中心 99% 時間運作在 <strong>10%–50% 負載</strong>，但傳統伺服器在低負載時依然極度耗電：
+          </p>
+          <div class="bar-row"><span>100% Load</span><div class="bar-track"><div class="bar-fill" style="width:100%;background:var(--accent);"></div></div><strong class="mono">258W (100%)</strong></div>
+          <div class="bar-row"><span>50% Load</span><div class="bar-track"><div class="bar-fill" style="width:66%;background:var(--accent);opacity:0.8;"></div></div><strong class="mono">170W (66%)</strong></div>
+          <div class="bar-row"><span>10% Load</span><div class="bar-track"><div class="bar-fill" style="width:47%;background:var(--m-rose);"></div></div><strong class="mono" style="color:var(--m-rose);">121W (47%!)</strong></div>
+          <div class="bar-row"><span>0% Idle</span><div class="bar-track"><div class="bar-fill" style="width:31%;background:var(--text-muted);"></div></div><strong class="mono">80W (31%)</strong></div>
+          <div class="callout neutral" style="margin-top:10px;">
+            <strong>架構啟示</strong>：必須朝 <strong>Energy-Proportional Computing（讓耗電量與實際工作負載成正比）</strong> 設計硬體！
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 10: MIPS PITFALL & CHAPTER SUMMARY -->
+    <section class="slide" data-title="MIPS 效能指標陷阱與 Chapter 1 總結" data-section="§1.9 – §1.10">
+      <div class="slide-header">
+        <div>
+          <div class="slide-kicker">§1.9 – §1.10 Pitfalls &amp; Concluding Remarks</div>
+          <h1>為什麼不能用 MIPS 作為效能指標？Chapter 1 核心總結</h1>
+        </div>
+        <div class="slide-source">wiki/exercises/ch01-performance-amdahl-and-mips-traps.md</div>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <h3 class="rose">Pitfall: Using MIPS as a Performance Metric（Slide 48）</h3>
+          <pre>MIPS = Instruction Count / (Execution Time × 10⁶)
+     = Clock Rate / (CPI × 10⁶)</pre>
+          <ul class="clean" style="margin-top:8px;">
+            <li><strong>缺陷 1 — 無法跨 ISA 比較</strong>：不同指令集（如 x86 CISC vs MIPS RISC）單條指令完成的工作量完全不同。</li>
+            <li><strong>缺陷 2 — 忽略指令複雜度差異（MIPS 越高反而跑越慢！）</strong>：若某段程式塞滿大量簡單無用的低 CPI 指令，雖然算出來的 <code>MIPS</code> 很高，但因 <code>IC</code> 暴增，<strong>實際 Execution Time 反而更長</strong>！</li>
+            <li><strong>缺陷 3 — CPI 隨程式劇烈變動</strong>：同一顆 Core i7 跑 <code>libquantum</code> (CPI 0.44) 與跑 <code>mcf</code> (CPI 2.66) 的 MIPS 相差 6 倍。</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3 class="sage">Chapter 1 全章四大黃金定律總結（Slide 49）</h3>
+          <ul class="clean">
+            <li><strong>1. 分層抽象化（Hierarchical Abstraction）</strong>：在軟硬體之間以 <strong>ISA（The Hardware/Software Interface）</strong> 作為核心契約。</li>
+            <li><strong>2. 唯一可靠的效能指標</strong>：<strong>Execution Time（真實執行時間 = <code>IC × CPI × Tc</code>）</strong> 是唯一不會被誤導的標準。</li>
+            <li><strong>3. Make the Common Case Fast（Amdahl's Law）</strong>：局部加速的上限永遠受限於未被加速的比例 <code>T_unaffected</code>。</li>
+            <li><strong>4. Power Wall 驅動 Parallelism</strong>：電壓與散熱極限終結了單核時脈狂飆，開啟多核心與多層級平行化時代。</li>
+          </ul>
+          <div class="callout" style="margin-top:10px;">
+            下一章（<strong>Chapter 2: Instructions</strong>）將深入拆解 <strong>MIPS ISA</strong> 的指令格式、定址模式與函式 Stack Frame！
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Overview Modal -->
+  <div class="overview-modal" id="overview-modal">
+    <div style="max-width:1220px;margin:0 auto 14px;display:flex;justify-content:space-between;align-items:center;">
+      <h2 style="font-size:1.05rem;font-weight:700;">Chapter 1 投影片總覽（共 10 頁 · 點選跳轉 · ESC 關閉）</h2>
+      <button class="btn" onclick="toggleOverview(false)">關閉</button>
+    </div>
+    <div class="overview-grid" id="overview-grid"></div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div style="display:flex;gap:7px;">
+      <button class="btn" id="btn-prev">← 上一頁</button>
+      <button class="btn" id="btn-next">下一頁 →</button>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-bar" id="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+      <div class="slide-counter" id="slide-counter">01 / 10</div>
+    </div>
+    <div class="hint">← / → / Space 換頁 · O 總覽 · T 主題 · F 全螢幕</div>
+  </footer>
+
+  <script>
+    const slides = Array.from(document.querySelectorAll('.slide'));
+    let current = 0;
+
+    function updateSlide() {
+      slides.forEach((s, i) => s.classList.toggle('active', i === current));
+      document.getElementById('progress-fill').style.width = (((current + 1) / slides.length) * 100) + '%';
+      document.getElementById('slide-counter').textContent =
+        String(current + 1).padStart(2, '0') + ' / ' + String(slides.length).padStart(2, '0');
+      document.getElementById('btn-prev').disabled = current === 0;
+      document.getElementById('btn-next').disabled = current === slides.length - 1;
+      document.querySelectorAll('.overview-card').forEach((c, i) => c.classList.toggle('current', i === current));
+    }
+    function goTo(idx) { current = Math.max(0, Math.min(slides.length - 1, idx)); updateSlide(); toggleOverview(false); }
+    function next() { if (current < slides.length - 1) { current++; updateSlide(); } }
+    function prev() { if (current > 0) { current--; updateSlide(); } }
+    document.getElementById('btn-next').addEventListener('click', next);
+    document.getElementById('btn-prev').addEventListener('click', prev);
+    document.getElementById('progress-bar').addEventListener('click', (e) => {
+      const rect = e.currentTarget.getBoundingClientRect();
+      goTo(Math.floor(((e.clientX - rect.left) / rect.width) * slides.length));
+    });
+
+    const overviewModal = document.getElementById('overview-modal');
+    const overviewGrid = document.getElementById('overview-grid');
+    slides.forEach((s, i) => {
+      const card = document.createElement('div');
+      card.className = 'overview-card' + (i === 0 ? ' current' : '');
+      card.innerHTML = `<div class="num">SLIDE ${String(i + 1).padStart(2, '0')}</div><div class="title">${s.dataset.title}</div><div class="sec">${s.dataset.section}</div>`;
+      card.addEventListener('click', () => goTo(i));
+      overviewGrid.appendChild(card);
+    });
+    function toggleOverview(force) {
+      overviewModal.classList.toggle('open', typeof force === 'boolean' ? force : !overviewModal.classList.contains('open'));
+    }
+    document.getElementById('btn-overview').addEventListener('click', () => toggleOverview());
+
+    const mediaDark = window.matchMedia('(prefers-color-scheme: dark)');
+    let themeMode = 'auto';
+    const themeBtn = document.getElementById('btn-theme');
+    function applyTheme() {
+      const html = document.documentElement;
+      if (themeMode === 'auto') { html.removeAttribute('data-theme'); themeBtn.textContent = `主題：跟隨系統 (${mediaDark.matches ? '深' : '淺'})`; }
+      else if (themeMode === 'light') { html.setAttribute('data-theme', 'light'); themeBtn.textContent = '主題：淺色'; }
+      else { html.setAttribute('data-theme', 'dark'); themeBtn.textContent = '主題：深色'; }
+    }
+    function cycleTheme() { themeMode = themeMode === 'auto' ? 'light' : (themeMode === 'light' ? 'dark' : 'auto'); applyTheme(); }
+    mediaDark.addEventListener('change', () => { if (themeMode === 'auto') applyTheme(); });
+    themeBtn.addEventListener('click', cycleTheme);
+    applyTheme();
+
+    document.getElementById('btn-full').addEventListener('click', () => {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+      else document.exitFullscreen?.();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { e.preventDefault(); next(); }
+      else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); prev(); }
+      else if (e.key === 'Home') goTo(0);
+      else if (e.key === 'End') goTo(slides.length - 1);
+      else if (e.key.toLowerCase() === 'o') toggleOverview();
+      else if (e.key === 'Escape') toggleOverview(false);
+      else if (e.key.toLowerCase() === 't') cycleTheme();
+    });
+
+    /* Interactive #1: Iron Law Cases (Slide 06) */
+    function selectIronCase(c) {
+      ['1','2','3'].forEach(k => document.getElementById('iron-btn-' + k).classList.toggle('active', 'c' + k === c));
+      const el = document.getElementById('iron-view');
+      if (c === 'c1') {
+        el.innerHTML = `
+          <pre># Slide 32: Computer A vs. Computer B 時脈設計
+Computer A: Clock Rate = 2 GHz, CPU Time = 10 s
+  → Cycles_A = 10 s × 2×10⁹ Hz = 20 × 10⁹ cycles
+
+Computer B 目標: CPU Time = 6 s，但高時脈造成 Cycles_B = 1.2 × Cycles_A
+  → Cycles_B = 1.2 × 20×10⁹ = 24 × 10⁹ cycles
+  → Clock Rate_B = 24×10⁹ / 6 s = 4.0 GHz (需翻倍時脈!)</pre>
+          <div class="callout">
+            <strong>設計啟示</strong>：<br/>
+            • 為了讓執行時間從 <code>10s → 6s</code>（僅快 <code>1.67×</code>），因為拉高時脈常伴隨更深管線或更多記憶體等待週期（<code>1.2× cycles</code>），<strong>時脈頻率必須從 2 GHz 翻倍至 4 GHz</strong>！
+          </div>`;
+      } else if (c === 'c2') {
+        el.innerHTML = `
+          <pre># Slide 34: 相同 ISA 下的兩台電腦對決 (IC = I 相同)
+Computer A: Cycle Time = 250 ps, CPI = 2.0
+  → CPU Time_A = I × 2.0 × 250 ps = 500 × I ps
+
+Computer B: Cycle Time = 500 ps, CPI = 1.2
+  → CPU Time_B = I × 1.2 × 500 ps = 600 × I ps
+
+Relative Performance = Time_B / Time_A = 600I / 500I = 1.2×</pre>
+          <div class="callout sage">
+            <strong>結論：Computer A 比 Computer B 快 1.2 倍！</strong><br/>
+            • 雖然 B 的 CPI 較低（1.2 &lt; 2.0），但 A 的時脈週期短了一半（250ps vs 500ps），乘積後 A 勝出。
+          </div>`;
+      } else {
+        el.innerHTML = `
+          <pre># Slide 36: 兩段編譯結果之加權 CPI 對比 (Class A:1, B:2, C:3 cyc)
+Sequence 1 (IC = 2 + 1 + 2 = 5 條指令):
+  → Clock Cycles = 2×1 + 1×2 + 2×3 = 10 cycles (Avg CPI = 10/5 = 2.0)
+
+Sequence 2 (IC = 4 + 1 + 1 = 6 條指令):
+  → Clock Cycles = 4×1 + 1×2 + 1×3 =  9 cycles (Avg CPI =  9/6 = 1.5)</pre>
+          <div class="callout sage">
+            <strong>關鍵反直覺結論：Sequence 2 指令數較多（6 &gt; 5），卻跑得更快（9 &lt; 10 cycles）！</strong><br/>
+            • 因為 Sequence 2 用更多 1-cycle 的簡單指令取代了 3-cycle 的慢指令。
+          </div>`;
+      }
+    }
+    selectIronCase('c1');
+
+    /* Interactive #2: Amdahl's Law Explorer (Slide 09) */
+    function setAmdahl(factor, btn) {
+      if (btn) {
+        btn.parentElement.querySelectorAll('.btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      }
+      const box = document.getElementById('amdahl-box');
+      if (factor > 1000) {
+        box.innerHTML = `<strong>當乘法加速 Factor → ∞（耗時 0s）</strong>：<br/>
+          <code>T_improved = 80 / ∞ + 20 = 0 + 20 = 20.0 s</code> → 理論極限漸近加速比 = <code>100 / 20 = 5.0×</code>。<br/>
+          <strong>結論</strong>：因為未被加速的 <code>20s</code> 已經佔了整整 1/5，在任何有限加速倍率下<strong>永遠不可能達到 5× 整體加速</strong>！`;
+      } else {
+        const t = (80 / factor) + 20;
+        const sp = (100 / t).toFixed(2);
+        box.innerHTML = `<strong>當乘法快 ${factor}× 時</strong>：<br/>
+          <code>T_improved = 80 / {factor} + 20 ={(80/factor).toFixed(1)} + 20 = ${t.toFixed(1)} s</code><br/>
+          <strong>整體加速比 = <code>100 / {t.toFixed(1)} ={sp}×</code></strong>（遠低於 ${factor}×，受制於未加速的 20s！）。`;
+      }
+    }
+    setAmdahl(999999);
+    updateSlide();
+  </script>
+</body>
+</html>

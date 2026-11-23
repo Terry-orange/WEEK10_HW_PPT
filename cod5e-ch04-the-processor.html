@@ -1,0 +1,1882 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chapter 4: The Processor — 計算機結構 LLM Wiki 互動簡報</title>
+  <style>
+    /* =========================================================
+       Design System: Soft Cool-Gray Minimalist + Terracotta Orange
+       Auto-syncs with OS prefers-color-scheme, low visual contrast
+       ========================================================= */
+    :root {
+      --bg: #f3f4f6;
+      --bg-elev: #fafbfc;
+      --bg-card: #eff1f4;
+      --bg-card-hover: #e7eaee;
+      --bg-subtle: #e9ecf0;
+      --border: rgba(45, 52, 60, 0.08);
+      --border-strong: rgba(45, 52, 60, 0.16);
+      --text: #2e343b;
+      --text-muted: #66707c;
+
+      /* Primary Terracotta / Caramel Orange */
+      --accent: #c96e43;
+      --accent-soft: rgba(201, 110, 67, 0.10);
+      --accent-mid: rgba(201, 110, 67, 0.22);
+      --accent-border: rgba(201, 110, 67, 0.34);
+
+      /* Desaturated Morandi Palette (for 5 pipeline stages & gentle distinctions) */
+      --m-blue: #5e7c96;
+      --m-blue-bg: rgba(94, 124, 150, 0.12);
+      --m-plum: #7f6c8e;
+      --m-plum-bg: rgba(127, 108, 142, 0.12);
+      --m-ochre: #b38148;
+      --m-ochre-bg: rgba(179, 129, 72, 0.12);
+      --m-sage: #58826f;
+      --m-sage-bg: rgba(88, 130, 111, 0.12);
+      --m-rose: #b46368;
+      --m-rose-bg: rgba(180, 99, 104, 0.12);
+
+      --code-bg: #e9ecef;
+      --code-text: #343b44;
+      --pipe-reg-bg: #7b8490;
+      --pipe-reg-text: #f8f9fa;
+      --shadow: 0 8px 28px rgba(30, 38, 48, 0.05);
+
+      --font-sans: "Inter", "Segoe UI", "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, -apple-system, sans-serif;
+      --font-mono: "JetBrains Mono", "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg: #1b1e22;
+        --bg-elev: #22262b;
+        --bg-card: #292e35;
+        --bg-card-hover: #313740;
+        --bg-subtle: #2d333b;
+        --border: rgba(220, 226, 234, 0.07);
+        --border-strong: rgba(220, 226, 234, 0.14);
+        --text: #d7dce2;
+        --text-muted: #909aa6;
+
+        --accent: #dc865c;
+        --accent-soft: rgba(220, 134, 92, 0.13);
+        --accent-mid: rgba(220, 134, 92, 0.24);
+        --accent-border: rgba(220, 134, 92, 0.36);
+
+        --m-blue: #89a6c2;
+        --m-blue-bg: rgba(137, 166, 194, 0.14);
+        --m-plum: #a895b8;
+        --m-plum-bg: rgba(168, 149, 184, 0.14);
+        --m-ochre: #cea16c;
+        --m-ochre-bg: rgba(206, 161, 108, 0.14);
+        --m-sage: #82ad98;
+        --m-sage-bg: rgba(130, 173, 152, 0.14);
+        --m-rose: #ce8287;
+        --m-rose-bg: rgba(206, 130, 135, 0.14);
+
+        --code-bg: #181b1f;
+        --code-text: #cdd4dd;
+        --pipe-reg-bg: #58616d;
+        --pipe-reg-text: #edf0f4;
+        --shadow: 0 12px 32px rgba(0, 0, 0, 0.22);
+      }
+    }
+
+    :root[data-theme="dark"] {
+      --bg: #1b1e22;
+      --bg-elev: #22262b;
+      --bg-card: #292e35;
+      --bg-card-hover: #313740;
+      --bg-subtle: #2d333b;
+      --border: rgba(220, 226, 234, 0.07);
+      --border-strong: rgba(220, 226, 234, 0.14);
+      --text: #d7dce2;
+      --text-muted: #909aa6;
+
+      --accent: #dc865c;
+      --accent-soft: rgba(220, 134, 92, 0.13);
+      --accent-mid: rgba(220, 134, 92, 0.24);
+      --accent-border: rgba(220, 134, 92, 0.36);
+
+      --m-blue: #89a6c2;
+      --m-blue-bg: rgba(137, 166, 194, 0.14);
+      --m-plum: #a895b8;
+      --m-plum-bg: rgba(168, 149, 184, 0.14);
+      --m-ochre: #cea16c;
+      --m-ochre-bg: rgba(206, 161, 108, 0.14);
+      --m-sage: #82ad98;
+      --m-sage-bg: rgba(130, 173, 152, 0.14);
+      --m-rose: #ce8287;
+      --m-rose-bg: rgba(206, 130, 135, 0.14);
+
+      --code-bg: #181b1f;
+      --code-text: #cdd4dd;
+      --pipe-reg-bg: #58616d;
+      --pipe-reg-text: #edf0f4;
+      --shadow: 0 12px 32px rgba(0, 0, 0, 0.22);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      width: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+      transition: background 0.25s ease, color 0.25s ease;
+    }
+
+    /* Top bar */
+    .topbar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 46px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      z-index: 30;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      font-weight: 600;
+      font-size: 0.86rem;
+      letter-spacing: 0.01em;
+    }
+
+    .brand-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      display: inline-block;
+    }
+
+    .brand .pill {
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .top-controls {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .btn {
+      background: var(--bg-card);
+      color: var(--text);
+      border: 1px solid transparent;
+      border-radius: 7px;
+      padding: 5px 11px;
+      font-size: 0.78rem;
+      font-weight: 500;
+      font-family: var(--font-sans);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      text-decoration: none;
+      transition: background 0.16s ease, color 0.16s ease, border-color 0.16s ease;
+    }
+
+    .btn:hover:not(:disabled) {
+      background: var(--bg-card-hover);
+      border-color: var(--border-strong);
+    }
+
+    .btn:disabled {
+      opacity: 0.42;
+      cursor: default;
+    }
+
+    .btn.active {
+      background: var(--accent-soft);
+      border-color: var(--accent-border);
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    /* Deck container */
+    .deck {
+      position: fixed;
+      top: 46px;
+      bottom: 48px;
+      left: 0;
+      right: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 14px 26px;
+    }
+
+    .slide {
+      display: none;
+      width: 100%;
+      max-width: 1240px;
+      height: 100%;
+      max-height: 740px;
+      background: var(--bg-elev);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      padding: 24px 34px;
+      overflow-y: auto;
+      flex-direction: column;
+      gap: 14px;
+      animation: fadeSlide 0.2s ease;
+    }
+
+    .slide.active { display: flex; }
+
+    @keyframes fadeSlide {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Slide Header */
+    .slide-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 10px;
+      gap: 14px;
+      flex-shrink: 0;
+    }
+
+    .slide-kicker {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+      font-weight: 700;
+      margin-bottom: 3px;
+    }
+
+    .slide h1 {
+      font-size: 1.48rem;
+      line-height: 1.24;
+      font-weight: 700;
+      letter-spacing: -0.015em;
+    }
+
+    .slide-source {
+      font-size: 0.71rem;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      background: var(--bg-card);
+      padding: 3px 9px;
+      border-radius: 6px;
+      white-space: nowrap;
+    }
+
+    /* Layouts */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .grid-12 { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 16px; }
+    .grid-21 { display: grid; grid-template-columns: 0.85fr 1.15fr; gap: 16px; }
+
+    /* Calm Tonal Cards */
+    .card {
+      background: var(--bg-card);
+      border-radius: 11px;
+      padding: 14px 16px;
+    }
+
+    .card h3 {
+      font-size: 0.9rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .card h3::before {
+      content: "";
+      width: 3px;
+      height: 13px;
+      border-radius: 2px;
+      background: var(--accent);
+      display: inline-block;
+      flex-shrink: 0;
+    }
+
+    .card h3.muted-bar::before { background: var(--text-muted); }
+    .card h3.sage::before { background: var(--m-sage); }
+    .card h3.rose::before { background: var(--m-rose); }
+    .card h3.plum::before { background: var(--m-plum); }
+
+    ul.clean {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 0.84rem;
+      line-height: 1.5;
+    }
+
+    ul.clean li {
+      padding-left: 13px;
+      position: relative;
+    }
+
+    ul.clean li::before {
+      content: "";
+      width: 4.5px;
+      height: 4.5px;
+      border-radius: 50%;
+      background: var(--accent);
+      position: absolute;
+      left: 0;
+      top: 0.58em;
+      opacity: 0.85;
+    }
+
+    code, .mono {
+      font-family: var(--font-mono);
+      font-size: 0.84em;
+      background: var(--bg-subtle);
+      padding: 1px 5px;
+      border-radius: 4px;
+      color: var(--accent);
+    }
+
+    pre {
+      background: var(--code-bg);
+      color: var(--code-text);
+      padding: 10px 12px;
+      border-radius: 9px;
+      font-family: var(--font-mono);
+      font-size: 0.76rem;
+      line-height: 1.48;
+      overflow-x: auto;
+      border: 1px solid var(--border);
+    }
+
+    /* Minimalist Tables */
+    table.data {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.77rem;
+    }
+
+    table.data th, table.data td {
+      padding: 5px 8px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+    }
+
+    table.data th {
+      font-weight: 600;
+      color: var(--text-muted);
+      font-size: 0.73rem;
+      letter-spacing: 0.02em;
+      border-bottom: 1px solid var(--border-strong);
+    }
+
+    table.data tbody tr:last-child td { border-bottom: none; }
+    table.data td.center, table.data th.center { text-align: center; }
+
+    .tag {
+      display: inline-block;
+      padding: 1.5px 8px;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      font-weight: 600;
+    }
+    .tag.orange { background: var(--accent-soft); color: var(--accent); }
+    .tag.neutral { background: var(--bg-subtle); color: var(--text-muted); }
+    .tag.sage { background: var(--m-sage-bg); color: var(--m-sage); }
+    .tag.rose { background: var(--m-rose-bg); color: var(--m-rose); }
+    .tag.blue { background: var(--m-blue-bg); color: var(--m-blue); }
+    .tag.ochre { background: var(--m-ochre-bg); color: var(--m-ochre); }
+
+    /* Soft Callouts */
+    .callout {
+      padding: 9px 13px;
+      border-radius: 9px;
+      border-left: 3px solid var(--accent);
+      background: var(--accent-soft);
+      font-size: 0.81rem;
+      line-height: 1.5;
+    }
+
+    .callout.neutral {
+      border-left-color: var(--text-muted);
+      background: var(--bg-elev);
+    }
+
+    .callout.sage {
+      border-left-color: var(--m-sage);
+      background: var(--m-sage-bg);
+    }
+
+    .callout.rose {
+      border-left-color: var(--m-rose);
+      background: var(--m-rose-bg);
+    }
+
+    /* Cover Slide */
+    .cover {
+      justify-content: center;
+      align-items: flex-start;
+      background:
+        radial-gradient(circle at 92% 14%, var(--accent-soft), transparent 42%),
+        var(--bg-elev);
+    }
+
+    .cover-accent-line {
+      width: 44px;
+      height: 3px;
+      border-radius: 999px;
+      background: var(--accent);
+      margin: 4px 0 2px;
+    }
+
+    .cover-title {
+      font-size: 2.4rem;
+      font-weight: 800;
+      line-height: 1.18;
+      margin: 6px 0 8px;
+      letter-spacing: -0.025em;
+    }
+
+    .cover-sub {
+      font-size: 0.98rem;
+      color: var(--text-muted);
+      max-width: 780px;
+      line-height: 1.62;
+      margin-bottom: 16px;
+    }
+
+    .roadmap {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      width: 100%;
+    }
+
+    .roadmap-item {
+      background: var(--bg-card);
+      border: 1px solid transparent;
+      border-radius: 11px;
+      padding: 14px;
+      cursor: pointer;
+      transition: background 0.16s ease, border-color 0.16s ease, transform 0.16s ease;
+    }
+
+    .roadmap-item:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--accent-border);
+      transform: translateY(-2px);
+    }
+
+    .roadmap-item .sec { font-family: var(--font-mono); font-size: 0.72rem; color: var(--accent); font-weight: 700; }
+    .roadmap-item .name { font-weight: 700; font-size: 0.9rem; margin-top: 4px; }
+    .roadmap-item .desc { font-size: 0.76rem; color: var(--text-muted); margin-top: 4px; line-height: 1.44; }
+
+    /* Interactive widgets */
+    .btn-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+
+    .signal-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 7px;
+    }
+
+    .sig-box {
+      background: var(--bg-elev);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 7px;
+      text-align: center;
+      transition: all 0.18s ease;
+    }
+
+    .sig-box .sig-name { font-size: 0.71rem; color: var(--text-muted); font-family: var(--font-mono); }
+    .sig-box .sig-val { font-size: 0.95rem; font-weight: 700; font-family: var(--font-mono); margin-top: 2px; }
+    .sig-box.on { border-color: var(--accent-border); background: var(--accent-soft); }
+    .sig-box.on .sig-val { color: var(--accent); }
+    .sig-box.off .sig-val { color: var(--text-muted); }
+    .sig-box.dc .sig-val { color: var(--m-ochre); }
+
+    /* Pipeline stage cells (soft Morandi hues) */
+    .stage-if { background: var(--m-blue-bg); color: var(--m-blue); font-weight: 700; text-align: center; border-radius: 4px; }
+    .stage-id { background: var(--m-plum-bg); color: var(--m-plum); font-weight: 700; text-align: center; border-radius: 4px; }
+    .stage-ex { background: var(--m-ochre-bg); color: var(--m-ochre); font-weight: 700; text-align: center; border-radius: 4px; }
+    .stage-mem { background: var(--m-sage-bg); color: var(--m-sage); font-weight: 700; text-align: center; border-radius: 4px; }
+    .stage-wb { background: var(--accent-soft); color: var(--accent); font-weight: 700; text-align: center; border-radius: 4px; }
+    .stage-stall { background: var(--m-rose-bg); color: var(--m-rose); font-weight: 700; text-align: center; border-radius: 4px; }
+    .stage-dim { opacity: 0.22; }
+    .col-active { outline: 1.5px solid var(--accent); outline-offset: -1px; }
+
+    /* Bar chart */
+    .bar-row {
+      display: grid;
+      grid-template-columns: 120px 1fr 74px;
+      align-items: center;
+      gap: 10px;
+      margin: 6px 0;
+      font-size: 0.8rem;
+    }
+
+    .bar-track {
+      height: 13px;
+      background: var(--bg-elev);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: 999px;
+      transition: width 0.4s ease;
+    }
+
+    /* FSM Boxes */
+    .fsm-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin: 10px 0;
+    }
+
+    .fsm-state {
+      border: 1.5px solid var(--border-strong);
+      border-radius: 10px;
+      padding: 10px 8px;
+      text-align: center;
+      background: var(--bg-elev);
+      transition: all 0.2s ease;
+    }
+
+    .fsm-state.current {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+    }
+
+    .fsm-bits { font-family: var(--font-mono); font-size: 0.96rem; font-weight: 700; color: var(--accent); }
+    .fsm-label { font-size: 0.78rem; font-weight: 600; margin-top: 3px; }
+    .fsm-pred { font-size: 0.7rem; color: var(--text-muted); margin-top: 2px; }
+
+    /* Footer navigation */
+    .footer {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      height: 48px;
+      background: var(--bg);
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      gap: 14px;
+      z-index: 30;
+    }
+
+    .progress-wrap {
+      flex: 1;
+      max-width: 500px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .progress-bar {
+      flex: 1;
+      height: 5px;
+      background: var(--bg-card-hover);
+      border-radius: 999px;
+      overflow: hidden;
+      cursor: pointer;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--accent);
+      width: 5.88%;
+      transition: width 0.22s ease;
+    }
+
+    .slide-counter {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      min-width: 56px;
+      text-align: right;
+    }
+
+    .hint {
+      font-size: 0.73rem;
+      color: var(--text-muted);
+    }
+
+    /* Overview modal */
+    .overview-modal {
+      position: fixed;
+      inset: 46px 0 48px 0;
+      background: color-mix(in srgb, var(--bg) 96%, transparent);
+      backdrop-filter: blur(8px);
+      z-index: 40;
+      display: none;
+      padding: 22px 32px;
+      overflow-y: auto;
+    }
+
+    .overview-modal.open { display: block; }
+
+    .overview-grid {
+      max-width: 1220px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(215px, 1fr));
+      gap: 10px;
+    }
+
+    .overview-card {
+      background: var(--bg-elev);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .overview-card:hover, .overview-card.current {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+    }
+
+    .overview-card .num { font-family: var(--font-mono); font-size: 0.72rem; color: var(--accent); font-weight: 700; }
+    .overview-card .title { font-weight: 600; font-size: 0.84rem; margin-top: 3px; line-height: 1.38; }
+    .overview-card .sec { font-size: 0.71rem; color: var(--text-muted); margin-top: 4px; }
+
+    svg text { font-family: var(--font-sans); }
+
+    @media (max-width: 960px) {
+      .grid-2, .grid-3, .grid-12, .grid-21, .roadmap { grid-template-columns: 1fr; }
+      .slide { padding: 20px 18px; }
+      .cover-title { font-size: 1.85rem; }
+      .hint { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-dot"></span>
+      <span>計算機結構 LLM Wiki</span>
+      <span class="pill">COD 5th Ed. · Ch4</span>
+    </div>
+    <div class="top-controls">
+      <a class="btn" href="index.html">← 回全冊總網</a>
+      <button class="btn" id="btn-overview" title="快捷鍵 O">總覽 (O)</button>
+      <button class="btn" id="btn-theme" title="快捷鍵 T：切換 自動 / 淺色 / 深色">主題：跟隨系統</button>
+      <button class="btn" id="btn-full" title="快捷鍵 F">全螢幕 (F)</button>
+    </div>
+  </header>
+
+  <main class="deck" id="deck">
+
+    <!-- SLIDE 01: COVER -->
+    <section class="slide cover active" data-title="Chapter 4 封面與學習路線圖" data-section="§4.1–§4.14 總覽">
+      <span class="tag orange">Computer Organization and Design · 5th Edition</span>
+      <h1 class="cover-title">Chapter 4: The Processor<br/>從 Single-Cycle 到 Out-of-Order Superscalar</h1>
+      <div class="cover-accent-line"></div>
+      <p class="cover-sub">
+        本互動簡報依 Slide Generation Graph 工作流編譯自 LLM Wiki 全部 12 份 Chapter 4 知識頁（§4.1–§4.14）。
+        涵蓋單週期資料路徑、五級管線與控制分組、Forwarding、分支預測、例外處理、多重發射（VLIW / Superscalar）、真實微架構與 11-Cycle 綜合追蹤。
+      </p>
+      <div class="roadmap">
+        <div class="roadmap-item" onclick="goTo(1)">
+          <div class="sec">§4.1 – §4.4 · Slides 02–03</div>
+          <div class="name">Single-Cycle Datapath</div>
+          <div class="desc">邏輯元件、兩層控制真值表、Jump 與 800ps Critical Path</div>
+        </div>
+        <div class="roadmap-item" onclick="goTo(3)">
+          <div class="sec">§4.5 – §4.7 · Slides 04–08</div>
+          <div class="name">Pipelining &amp; Data Hazards</div>
+          <div class="desc">5 級管線、Pipeline Regs、Forwarding、Load-Use Stall</div>
+        </div>
+        <div class="roadmap-item" onclick="goTo(8)">
+          <div class="sec">§4.8 – §4.9 · Slides 09–11</div>
+          <div class="name">Branch &amp; Exceptions</div>
+          <div class="desc">ID 分支判斷、2-bit Predictor、BTB、CP0 與精確例外</div>
+        </div>
+        <div class="roadmap-item" onclick="goTo(11)">
+          <div class="sec">§4.10 – §4.14 · Slides 12–17</div>
+          <div class="name">ILP, Real CPUs &amp; Traps</div>
+          <div class="desc">VLIW vs Superscalar、Power Wall、Cortex-A8 vs i7 與 11-Cycle 追蹤</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 02: INTRO & LOGIC BASICS -->
+    <section class="slide" data-title="效能因子、MIPS 子集與時脈方法論" data-section="§4.1 – §4.2">
+      <div class="slide-header">
+        <div>
+          <div class="slide-kicker">§4.1 – §4.2 Foundations</div>
+          <h1>CPU 效能因子、精簡 MIPS 子集與時脈方法論</h1>
+        </div>
+        <div class="slide-source">wiki/datapaths/mips-single-cycle-datapath.md</div>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <h3>1. 處理器效能與 MIPS 教學子集</h3>
+          <ul class="clean">
+            <li><strong>Instruction Count</strong>：由 <strong>ISA</strong> 與 <strong>Compiler</strong> 決定。</li>
+            <li><strong>CPI 與 Clock Cycle Time</strong>：由 <strong>CPU 硬體架構</strong> 決定。</li>
+            <li>本章實作 3 類核心 MIPS 指令子集：
+              <div style="margin-top:5px;display:flex;flex-wrap:wrap;gap:6px;">
+                <span class="tag blue">Memory: lw, sw</span>
+                <span class="tag sage">ALU: add, sub, and, or, slt</span>
+                <span class="tag orange">Control: beq, j</span>
+              </div>
+            </li>
+            <li><strong>五個共通執行步驟</strong>：Fetch (<code>PC → IM</code>) → Read Regs → ALU（運算／位址／比較）→ Data Memory（僅 <code>lw</code>/<code>sw</code>）→ 更新 <code>PC</code>（<code>PC+4</code> 或 Target）與 Write Back。</li>
+            <li><strong>硬體鐵則</strong>：不同來源導線絕不可直接並接，必須用 <code>Multiplexer (Mux)</code> 搭配 Control Unit 選擇。</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3 class="muted-bar">2. Combinational vs. Sequential 與時脈規則</h3>
+          <ul class="clean">
+            <li><strong>Combinational Elements（組合邏輯）</strong>：無狀態記憶，輸出為輸入的即時函數（AND、Mux <code>S ? I1 : I0</code>、Adder、ALU）。</li>
+            <li><strong>Sequential / State Elements（狀態元件）</strong>：儲存資料，採 <strong>Edge-Triggered（正緣 <code>0→1</code> 觸發）</strong> 更新；必要時加入 <code>Write</code> 致能線。</li>
+            <li><strong>Clocking Methodology</strong>：組合邏輯轉換皆發生在相鄰時脈正緣之間；<strong>最長組合路徑（Critical Path）決定時脈週期下限</strong>。</li>
+          </ul>
+          <svg viewBox="0 0 520 112" style="width:100%;margin-top:10px;">
+            <rect x="12" y="18" width="110" height="56" rx="8" fill="var(--bg-elev)" stroke="var(--m-blue)" stroke-width="1.6"/>
+            <text x="67" y="42" text-anchor="middle" fill="var(--text)" font-size="11.5" font-weight="600">State Element 1</text>
+            <text x="67" y="60" text-anchor="middle" fill="var(--text-muted)" font-size="10">正緣輸出舊值</text>
+            <line x1="122" y1="46" x2="178" y2="46" stroke="var(--text-muted)" stroke-width="1.6"/>
+            <polygon points="178,42 187,46 178,50" fill="var(--text-muted)"/>
+            <ellipse cx="260" cy="46" rx="72" ry="28" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.6"/>
+            <text x="260" y="43" text-anchor="middle" fill="var(--text)" font-size="11.5" font-weight="600">Combinational</text>
+            <text x="260" y="59" text-anchor="middle" fill="var(--accent)" font-size="10" font-weight="600">Longest Delay → Tc</text>
+            <line x1="332" y1="46" x2="388" y2="46" stroke="var(--text-muted)" stroke-width="1.6"/>
+            <polygon points="388,42 397,46 388,50" fill="var(--text-muted)"/>
+            <rect x="398" y="18" width="110" height="56" rx="8" fill="var(--bg-elev)" stroke="var(--m-sage)" stroke-width="1.6"/>
+            <text x="453" y="42" text-anchor="middle" fill="var(--text)" font-size="11.5" font-weight="600">State Element 2</text>
+            <text x="453" y="60" text-anchor="middle" fill="var(--text-muted)" font-size="10">下個正緣鎖存新值</text>
+            <path d="M 453 74 L 453 100 L 67 100 L 67 80" fill="none" stroke="var(--text-muted)" stroke-dasharray="4,4" stroke-width="1.3"/>
+            <polygon points="63,82 67,75 71,82" fill="var(--text-muted)"/>
+            <text x="260" y="96" text-anchor="middle" fill="var(--text-muted)" font-size="10">亦可安全回授至同一 State Element（如 PC ← PC + 4）</text>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 03: INTERACTIVE SINGLE-CYCLE DATAPATH & CONTROL -->
+    <section class="slide" data-title="Single-Cycle Datapath 與兩層控制" data-section="§4.3 – §4.4">
+      <div class="slide-header">
+        <div>
+          <div class="slide-kicker">§4.3 – §4.4 Interactive Explorer #1</div>
+          <h1>MIPS Single-Cycle Datapath 與 Main / ALU Control 追蹤器</h1>
+        </div>
+        <div class="slide-source">wiki/datapaths/mips-single-cycle-datapath.md</div>
+      </div>
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:9px;">
+          <div class="btn-group" style="margin:0;">
+            <button class="btn active" onclick="selectInstr('rtype', this)">R-type (add/sub/and/or/slt)</button>
+            <button class="btn" onclick="selectInstr('lw', this)">lw (Load Word)</button>
+            <button class="btn" onclick="selectInstr('sw', this)">sw (Store Word)</button>
+            <button class="btn" onclick="selectInstr('beq', this)">beq (Branch Equal)</button>
+            <button class="btn" onclick="selectInstr('j', this)">j (Jump)</button>
+          </div>
+          <span class="tag orange" id="sc-alu-badge">ALUOp = 10 → 依 funct[5:0] 解碼 4-bit ALU Control</span>
+        </div>
+        <div class="signal-grid" id="sc-signals"></div>
+        <div class="callout neutral" id="sc-desc" style="margin-top:9px;"></div>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <h3>ALU Control 4-bit 編碼（§4.4）</h3>
+          <table class="data">
+            <thead>
+              <tr><th>ALUOp</th><th>指令 / funct[5:0]</th><th>ALU 動作</th><th class="center">4-bit 控制碼</th></tr>
+            </thead>
+            <tbody>
+              <tr><td class="mono">00</td><td>lw (35), sw (43) / XXXXXX</td><td>add（算位址）</td><td class="center mono">0010</td></tr>
+              <tr><td class="mono">01</td><td>beq (4) / XXXXXX</td><td>subtract（比 Zero）</td><td class="center mono">0110</td></tr>
+              <tr><td class="mono">10</td><td>R-type: add (100000) / sub (100010)</td><td>add / subtract</td><td class="center mono">0010 / 0110</td></tr>
+              <tr><td class="mono">10</td><td>R-type: AND (100100) / OR (100101)</td><td>AND / OR</td><td class="center mono">0000 / 0001</td></tr>
+              <tr><td class="mono">10</td><td>R-type: slt (101010) / (NOR)</td><td>slt / NOR</td><td class="center mono">0111 / (1100)</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card">
+          <h3 class="rose">Single-Cycle 關鍵設計限制與效能瓶頸</h3>
+          <ul class="clean">
+            <li><strong>雙記憶體分離</strong>：單週期內每元件限用一次，故必須分離 Instruction Memory 與 Data Memory。</li>
+            <li><strong>Jump 位址串接</strong>：<code>(PC+4)[31:28] || Instr[25:0] || 00</code>，需額外 <code>Jump</code> 控制線與最外層 PC Mux。</li>
+            <li><strong>寫入控制絕不可為 X</strong>：<code>RegWrite</code>、<code>MemWrite</code>、<code>MemRead</code> 須明確為 <code>0</code> 以免破壞狀態。</li>
+            <li><strong>Critical Path = <code>lw</code> (800ps)</strong>：<code>IM → RF → ALU → DM → RF</code>，違背 <em>Making the common case fast</em> → 導入 <strong>Pipelining</strong>。</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 04: PIPELINING OVERVIEW -->
+    <section class="slide" data-title="Pipelining 原理：Throughput vs. Latency" data-section="§4.5">
+      <div class="slide-header">
+        <div>
+          <div class="slide-kicker">§4.5 Pipelining Overview &amp; Formulas</div>
+          <h1>Pipelining 提升 Throughput，而非縮短單指令 Latency</h1>
+        </div>
+        <div class="slide-source">wiki/concepts/pipelining-overview.md · formulas/</div>
+      </div>
+      <div class="grid-12">
+        <div class="card">
+          <h3>Single-Cycle (800ps) vs. 5-Stage Pipelined (200ps)</h3>
+          <table class="data" style="margin-bottom:10px;">
+            <thead>
+              <tr><th>指令</th><th class="center">IF</th><th class="center">ID (Reg)</th><th class="center">EX (ALU)</th><th class="center">MEM</th><th class="center">WB (Reg)</th><th class="center">單條總計</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><strong>lw</strong></td><td class="center">200ps</td><td class="center">100ps</td><td class="center">200ps</td><td class="center">200ps</td><td class="center">100ps</td><td class="center"><strong>800ps</strong></td></tr>
+              <tr><td><strong>sw</strong></td><td class="center">200ps</td><td class="center">100ps</td><td class="center">200ps</td><td class="center">200ps</td><td class="center">—</td><td class="center">700ps</td></tr>
+              <tr><td><strong>R-format</strong></td><td class="center">200ps</td><td class="center">100ps</td><td class="center">200ps</td><td class="center">—</td><td class="center">100ps</td><td class="center">600ps</td></tr>
+              <tr><td><strong>beq</strong></td><td class="center">200ps</td><td class="center">100ps</td><td class="center">200ps</td><td class="center">—</td><td class="center">—</td><td class="center">500ps</td></tr>
+            </tbody>
+          </table>
+          <div class="callout">
+            <strong>關鍵公式與非平衡效應：</strong><br/>
+            • 平衡理想加速比 = 管線級數 <code>k</code>（洗衣機 4 批：<code>8 / 3.5 = 2.3</code>；持續工作：<code>2n / (0.5n + 1.5) → 4</code>）。<br/>
+            • 本例因 ID/WB 僅 100ps（<strong>不平衡</strong>），管線週期受最慢階段鎖定於 <code>Tc = 200ps</code>：<br/>
+            &nbsp;&nbsp;→ 穩態加速比 = <code>800ps / 200ps = 4.0</code>（小於 5）；單條 <code>lw</code> 延遲由 <strong>800ps 增為 1000ps</strong>；3 條 <code>lw</code> 總時間由 <strong>2400ps 降至 1400ps</strong>。
+          </div>
+        </div>
+        <div class="card">
+          <h3 class="muted-bar">為何 MIPS ISA 天生適合管線化？</h3>
+          <ul class="clean">
+            <li><strong>固定 32-bit 指令長度</strong>：單週期輕鬆 Fetch 與 Decode（對比 x86 長達 1–17 bytes 變長指令）。</li>
+            <li><strong>少量且規律的指令格式</strong>：<code>rs</code>、<code>rt</code> 位置固定，可在 <strong>ID 階段同時解碼並讀取 Register File</strong>。</li>
+            <li><strong>Load/Store 定址架構</strong>：固定於 EX（第 3 級）算位址、MEM（第 4 級）存取記憶體，不與 ALU 運算混雜。</li>
+            <li><strong>記憶體對齊（Alignment）</strong>：保證單次記憶體讀寫僅需 <strong>1 個週期</strong>。</li>
+          </ul>
+          <div class="callout neutral" style="margin-top:10px;">
+            <strong>總執行時間公式（無 Stall）：</strong><br/>
+            <code>T_total = (k + n - 1) × Tc_pipe</code><br/>
+            其中 <code>k</code> = 管線級數，<code>n</code> = 指令數，<code>Tc_pipe = max(t_i) + t_latch</code>。
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 05: PIPELINED DATAPATH & CONTROL -->
+    <section class="slide" data-title="5-Stage Pipelined Datapath 與控制分組" data-section="§4.6">
+      <div class="slide-header">
+        <div>
+          <div class="slide-kicker">§4.6 Pipelined Datapath &amp; Control</div>
+          <h1>四大 Pipeline Registers、Write Register 修正與控制分組</h1>
+        </div>
+        <div class="slide-source">wiki/datapaths/mips-pipelined-datapath-and-control.md</div>
+      </div>
+      <div class="card" style="padding:10px 14px;">
+        <svg viewBox="0 0 980 182" style="width:100%;">
+          <defs>
+            <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--text-muted)"/>
+            </marker>
+            <marker id="arr-o" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--accent)"/>
+            </marker>
+          </defs>
+          <rect x="10" y="42" width="130" height="82" rx="9" fill="var(--m-blue-bg)" stroke="var(--m-blue)" stroke-width="1.5"/>
+          <text x="75" y="70" text-anchor="middle" fill="var(--m-blue)" font-size="13.5" font-weight="700">IF</text>
+          <text x="75" y="90" text-anchor="middle" fill="var(--text)" font-size="11">PC, IM, PC+4</text>
+
+          <rect x="160" y="28" width="28" height="110" rx="5" fill="var(--pipe-reg-bg)"/>
+          <text x="174" y="86" text-anchor="middle" fill="var(--pipe-reg-text)" font-size="10" font-weight="700" transform="rotate(-90 174 86)">IF / ID</text>
+
+          <rect x="208" y="42" width="142" height="82" rx="9" fill="var(--m-plum-bg)" stroke="var(--m-plum)" stroke-width="1.5"/>
+          <text x="279" y="70" text-anchor="middle" fill="var(--m-plum)" font-size="13.5" font-weight="700">ID</text>
+          <text x="279" y="90" text-anchor="middle" fill="var(--text)" font-size="11">Control, RegFile Read</text>
+          <text x="279" y="108" text-anchor="middle" fill="var(--text-muted)" font-size="10">Sign-Extend (16→32)</text>
+
+          <rect x="370" y="28" width="28" height="110" rx="5" fill="var(--pipe-reg-bg)"/>
+          <text x="384" y="86" text-anchor="middle" fill="var(--pipe-reg-text)" font-size="10" font-weight="700" transform="rotate(-90 384 86)">ID / EX</text>
+
+          <rect x="418" y="42" width="142" height="82" rx="9" fill="var(--m-ochre-bg)" stroke="var(--m-ochre)" stroke-width="1.5"/>
+          <text x="489" y="70" text-anchor="middle" fill="var(--m-ochre)" font-size="13.5" font-weight="700">EX</text>
+          <text x="489" y="90" text-anchor="middle" fill="var(--text)" font-size="11">ALU, RegDst Mux</text>
+          <text x="489" y="108" text-anchor="middle" fill="var(--text-muted)" font-size="10">EX Ctrl (4 lines)</text>
+
+          <rect x="580" y="28" width="28" height="110" rx="5" fill="var(--pipe-reg-bg)"/>
+          <text x="594" y="86" text-anchor="middle" fill="var(--pipe-reg-text)" font-size="10" font-weight="700" transform="rotate(-90 594 86)">EX / MEM</text>
+
+          <rect x="628" y="42" width="142" height="82" rx="9" fill="var(--m-sage-bg)" stroke="var(--m-sage)" stroke-width="1.5"/>
+          <text x="699" y="70" text-anchor="middle" fill="var(--m-sage)" font-size="13.5" font-weight="700">MEM</text>
+          <text x="699" y="90" text-anchor="middle" fill="var(--text)" font-size="11">Data Memory</text>
+          <text x="699" y="108" text-anchor="middle" fill="var(--text-muted)" font-size="10">M Ctrl (3 lines)</text>
+
+          <rect x="790" y="28" width="28" height="110" rx="5" fill="var(--pipe-reg-bg)"/>
+          <text x="804" y="86" text-anchor="middle" fill="var(--pipe-reg-text)" font-size="10" font-weight="700" transform="rotate(-90 804 86)">MEM / WB</text>
+
+          <rect x="838" y="42" width="130" height="82" rx="9" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"/>
+          <text x="903" y="70" text-anchor="middle" fill="var(--accent)" font-size="13.5" font-weight="700">WB</text>
+          <text x="903" y="90" text-anchor="middle" fill="var(--text)" font-size="11">MemtoReg Mux</text>
+          <text x="903" y="108" text-anchor="middle" fill="var(--text-muted)" font-size="10">WB Ctrl (2 lines)</text>
+
+          <line x1="140" y1="83" x2="156" y2="83" stroke="var(--text-muted)" stroke-width="1.5" marker-end="url(#arr)"/>
+          <line x1="188" y1="83" x2="204" y2="83" stroke="var(--text-muted)" stroke-width="1.5" marker-end="url(#arr)"/>
+          <line x1="350" y1="83" x2="366" y2="83" stroke="var(--text-muted)" stroke-width="1.5" marker-end="url(#arr)"/>
+          <line x1="398" y1="83" x2="414" y2="83" stroke="var(--text-muted)" stroke-width="1.5" marker-end="url(#arr)"/>
+          <line x1="560" y1="83" x2="576" y2="83" stroke="var(--text-muted)" stroke-width="1.5" marker-end="url(#arr)"/>
+          <line x1="608" y1="83" x2="624" y2="83" stroke="var(--text-muted)" stroke-width="1.5" marker-end="url(#arr)"/>
+          <line x1="770" y1="83" x2="786" y2="83" stroke="var(--text-muted)" stroke-width="1.5" marker-end="url(#arr)"/>
+          <line x1="818" y1="83" x2="834" y2="83" stroke="var(--text-muted)" stroke-width="1.5" marker-end="url(#arr)"/>
+
+          <path d="M 903 124 L 903 160 L 279 160 L 279 129" fill="none" stroke="var(--accent)" stroke-width="1.7" marker-end="url(#arr-o)"/>
+          <text x="590" y="176" text-anchor="middle" fill="var(--accent)" font-size="10.8" font-weight="600">Right-to-Left #1: WB → ID（寫回資料＋隨管線傳遞的 5-bit Write Reg # → Data Hazard 來源）</text>
+          <path d="M 699 42 L 699 22 L 75 22 L 75 37" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#arr-o)"/>
+          <text x="387" y="13" text-anchor="middle" fill="var(--accent)" font-size="10.5" font-weight="600">Right-to-Left #2: Branch PC 回授 → Control Hazard 來源</text>
+        </svg>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <h3 class="rose">經典 Bug 與修正（Slides 56–57）</h3>
+          <ul class="clean">
+            <li><strong>錯誤版本</strong>：若 Register File 的 <code>Write register</code> 仍直接接自 <code>IF/ID</code>，當 <code>lw</code> 走到 WB 寫回時，<code>IF/ID</code> 裡早已換成後面第 3 條指令，寫進錯誤暫存器！</li>
+            <li><strong>修正方案</strong>：將 5-bit 目的暫存器編號（EX 階段由 <code>RegDst</code> 選出 <code>rt</code>/<code>rd</code>）隨 <code>ID/EX → EX/MEM → MEM/WB</code> 一路傳遞，最後在 WB 與資料同步寫回。</li>
+            <li><strong>為何 WB 後無管線暫存器？</strong>結果已寫入永久架構狀態元件 Register File。</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Pipelined Control 三組訊號傳遞（Slides 64–66）</h3>
+          <table class="data">
+            <thead><tr><th>組別</th><th>控制訊號</th><th>經過暫存器</th></tr></thead>
+            <tbody>
+              <tr><td><span class="tag ochre">EX (4)</span></td><td class="mono">RegDst, ALUOp[1:0], ALUSrc</td><td class="mono">ID/EX</td></tr>
+              <tr><td><span class="tag sage">M (3)</span></td><td class="mono">Branch, MemRead, MemWrite</td><td class="mono">ID/EX → EX/MEM</td></tr>
+              <tr><td><span class="tag orange">WB (2)</span></td><td class="mono">RegWrite, MemtoReg</td><td class="mono">ID/EX → EX/MEM → MEM/WB</td></tr>
+            </tbody>
+          </table>
+          <p style="font-size:0.78rem;color:var(--text-muted);margin-top:8px;">所有控制訊號仍在 <strong>ID 階段</strong>解碼產生，分批隨指令向右傳遞、用完即釋放。</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 06: THREE HAZARDS & CODE SCHEDULING -->
+    <section class="slide" data-title="三大 Hazards 與 Code Scheduling" data-section="§4.5">
+      <div class="slide-header">
+        <div>
+          <div class="slide-kicker">§4.5 Pipeline Hazards · Interactive Explorer #2</div>
+          <h1>三大冒險總覽與 Compiler Code Scheduling（13 → 11 Cycles）</h1>
+        </div>
+        <div class="slide-source">wiki/concepts/pipelining-overview.md</div>
+      </div>
+      <div class="grid-3">
+        <div class="card">
+          <h3 class="rose">1. Structural Hazard</h3>
+          <p style="font-size:0.83rem;line-height:1.55;">
+            硬體資源衝突。單一記憶體會讓 <code>lw/sw</code> 的 MEM 與新指令 IF 互搶產生 Bubble。<br/>
+            <strong>解法</strong>：分離 <strong>Instruction / Data Memory</strong>（L1 I$/D$）＋ Register File 雙讀單寫。
+          </p>
+        </div>
+        <div class="card">
+          <h3>2. Data Hazard</h3>
+          <p style="font-size:0.83rem;line-height:1.55;">
+            後指令等待前指令產出資料。<br/>
+            • ALU→ALU：靠 <strong>Forwarding</strong> 達成 0 stall。<br/>
+            • <strong>Load-Use</strong>：無法向過去前遞，必停 <strong>1 stall</strong> 或由編譯器重排指令。
+          </p>
+        </div>
+        <div class="card">
+          <h3 class="plum">3. Control Hazard</h3>
+          <p style="font-size:0.83rem;line-height:1.55;">
+            分支結果揭曉前已預取後續指令。<br/>
+            <strong>解法</strong>：提早於 ID 判斷＋<strong>Predict Not Taken</strong>（錯才 Flush）＋動態 <strong>2-bit Predictor &amp; BTB</strong>。
+          </p>
+        </div>
+      </div>
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;flex-wrap:wrap;gap:8px;">
+          <h3 style="margin:0;">互動範例：C 程式 <code>A = B + E; C = B + F;</code> 的編譯器排程（Slide 42）</h3>
+          <div class="btn-group" style="margin:0;">
+            <button class="btn active" id="sched-before-btn" onclick="toggleSched('before')">未排程：13 Cycles（2 Stalls）</button>
+            <button class="btn" id="sched-after-btn" onclick="toggleSched('after')">重排後：11 Cycles（0 Stalls）</button>
+          </div>
+        </div>
+        <div class="grid-2" id="sched-view"></div>
+      </div>
+    </section>
+
+    <!-- SLIDE 07: FORWARDING UNIT & DOUBLE DATA HAZARD -->
+    <section class="slide" data-title="Data Hazards (1)：Forwarding 與 Double Data Hazard" data-section="§4.7">
+      <div class="slide-header">
+        <div>
+          <div class="slide-kicker">§4.7 Data Hazards — Forwarding</div>
+          <h1>Forwarding Unit（ForwardA / ForwardB）與雙重冒險優先權</h1>
+        </div>
+        <div class="slide-source">wiki/datapaths/forwarding-and-hazard-detection.md</div>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <h3>ALU 連續相依範例（Slides 67–68）</h3>
+          <pre>sub $2,  $1, $3   # CC5 前半週期寫入新值 -20（原 10）
+and $12, $2, $5   # CC4(EX) ← EX/MEM Forwarding (10)
+or  $13, $6, $2   # CC5(EX) ← MEM/WB Forwarding (01)
+add $14, $2, $2   # CC5(ID) 後半週期直接讀新值 → 無 Hazard!
+sw  $15, 100($2)  # CC6(ID) 正常讀取 → 無 Hazard!</pre>
+          <table class="data" style="margin-top:10px;">
+            <thead><tr><th class="center">Mux (ForwardA/B)</th><th>資料來源</th><th>適用情境</th></tr></thead>
+            <tbody>
+              <tr><td class="center mono">00</td><td>ID/EX</td><td>無相依，使用 Register File 讀出值</td></tr>
+              <tr><td class="center mono" style="color:var(--accent);font-weight:700;">10</td><td><strong>EX/MEM</strong></td><td><strong>EX Hazard</strong>（上一條 ALU 結果）</td></tr>
+              <tr><td class="center mono" style="color:var(--m-sage);font-weight:700;">01</td><td><strong>MEM/WB</strong></td><td><strong>MEM Hazard</strong>（前兩條 ALU 或 Load 結果）</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card">
+          <h3 class="rose">Double Data Hazard 與完整條件式（Slides 72–74）</h3>
+          <pre style="margin-bottom:9px;">add $1, $2, $3   # 走到 MEM/WB → 舊的 $1
+add $1, $4, $5   # 走到 EX/MEM → 最新的 $1（必須優先！）
+add $6, $1, $7   # 同時觸發 EX 與 MEM Hazard！</pre>
+          <ul class="clean">
+            <li><strong>EX Hazard (ForwardA = 10)</strong>：<br/>
+              <code>EX/MEM.RegWrite &amp;&amp; (EX/MEM.Rd != 0) &amp;&amp; (EX/MEM.Rd == ID/EX.Rs)</code>
+            </li>
+            <li><strong>修正後 MEM Hazard (ForwardA = 01)</strong>：<br/>
+              <code>MEM/WB.RegWrite &amp;&amp; (MEM/WB.Rd != 0)</code><br/>
+              <code style="color:var(--m-rose);"><strong>&amp;&amp; !(EX/MEM.RegWrite &amp;&amp; EX/MEM.Rd != 0 &amp;&amp; EX/MEM.Rd == ID/EX.Rs)</strong></code><br/>
+              <code>&amp;&amp; (MEM/WB.Rd == ID/EX.Rs)</code>
+            </li>
+            <li><strong>兩大考點保護</strong>：<code>RegWrite == 1</code>（避免 <code>sw</code>/<code>beq</code> 誤觸）且 <code>RegisterRd != 0</code>（絕不可前遞覆寫 <code>$zero</code>）。</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 08: LOAD-USE HAZARD DETECTION UNIT -->
+    <section class="slide" data-title="Data Hazards (2)：Load-Use Hazard Detection" data-section="§4.7">
+      <div class="slide-header">
+        <div>
+          <div class="slide-kicker">§4.7 Data Hazards — Stalling</div>
+          <h1>Load-Use Data Hazard：無法向過去前遞時的硬體停頓</h1>
+        </div>
+        <div class="slide-source">wiki/datapaths/forwarding-and-hazard-detection.md</div>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <h3>Hazard Detection Unit 偵測條件（ID 階段）</h3>
+          <pre>if (ID/EX.MemRead
+    and ((ID/EX.RegisterRt == IF/ID.RegisterRs)
+         or (ID/EX.RegisterRt == IF/ID.RegisterRt)))
+    stall the pipeline</pre>
+          <p style="font-size:0.8rem;color:var(--text-muted);margin-top:7px;line-height:1.5;">
+            當 <code>lw</code> 正在 EX（<code>ID/EX.MemRead == 1</code>）、緊接使用 <code>lw</code> 目標暫存器（<code>rt</code>）的指令正在 ID 時，立即觸發停頓。
+          </p>
+        </div>
+        <div class="card">
+          <h3 class="rose">硬體同步執行的三大 Stall 動作（Slide 78）</h3>
+          <ul class="clean">
+            <li><strong>1. 插入 Bubble (<code>nop</code>)</strong>：透過 Control 後方 Mux，將寫入 <code>ID/EX</code> 的 <code>EX / M / WB</code> 控制訊號全歸 <code>0</code>。</li>
+            <li><strong>2. 凍結 <code>IF/ID</code> (<code>IF/IDWrite = 0</code>)</strong>：讓 ID 階段的 <code>and</code> 下週期重做解碼。</li>
+            <li><strong>3. 凍結 <code>PC</code> (<code>PCWrite = 0</code>)</strong>：讓 IF 階段的 <code>or</code> 下週期重新擷取。</li>
+          </ul>
+        </div>
+      </div>
+      <div class="card">
+        <h3>插入 1-Cycle Stall 後的完整週期追蹤（Slides 79–80）</h3>
+        <table class="data">
+          <thead>
+            <tr><th>指令序列</th><th class="center">CC1</th><th class="center">CC2</th><th class="center">CC3</th><th class="center">CC4</th><th class="center">CC5</th><th class="center">CC6</th><th class="center">CC7</th><th class="center">CC8</th><th class="center">CC9</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="mono">lw  $2, 20($1)</td><td class="stage-if">IF</td><td class="stage-id">ID</td><td class="stage-ex">EX</td><td class="stage-mem">MEM</td><td class="stage-wb">WB</td><td></td><td></td><td></td><td></td></tr>
+            <tr><td class="mono" style="color:var(--m-rose);">(bubble / nop)</td><td></td><td></td><td></td><td class="stage-stall">EX(nop)</td><td class="stage-stall">MEM</td><td class="stage-stall">WB</td><td></td><td></td><td></td></tr>
+            <tr><td class="mono">and $4, $2, $5</td><td></td><td class="stage-if">IF</td><td class="stage-id">ID</td><td class="stage-stall">ID (stall)</td><td class="stage-ex">EX ←Fwd</td><td class="stage-mem">MEM</td><td class="stage-wb">WB</td><td></td><td></td></tr>
+            <tr><td class="mono">or  $8, $2, $6</td><td></td><td></td><td class="stage-if">IF</td><td class="stage-stall">IF (stall)</td><td class="stage-id">ID (讀$2)</td><td class="stage-ex">EX</td><td class="stage-mem">MEM</td><td class="stage-wb">WB</td><td></td></tr>
+            <tr><td class="mono">add $9, $4, $2</td><td></td><td></td><td></td><td></td><td class="stage-if">IF</td><td class="stage-id">ID</td><td class="stage-ex">EX ←$4</td><td class="stage-mem">MEM</td><td class="stage-wb">WB</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- SLIDE 09: CONTROL HAZARDS & BRANCH-IN-ID -->
+    <section class="slide" data-title="Control Hazards (1)：Branch-in-ID 與衍生停頓" data-section="§4.8">
+      <div class="slide-header">
+        <div>
+          <div class="slide-kicker">§4.8 Control Hazards</div>
+          <h1>縮減分支懲罰（3 → 1 Cycle）與 Branch-in-ID 資料冒險</h1>
+        </div>
+        <div class="slide-source">wiki/concepts/branch-prediction-and-control-hazards.md</div>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <h3>分支判斷位置：MEM vs. ID（Slides 83–86）</h3>
+          <ul class="clean">
+            <li><strong>若留在 MEM 階段決定</strong>：確定跳躍時已有 3 條錯誤指令在 EX/ID/IF → 必須 Flush <strong>3 條指令（3-cycle penalty）</strong>。</li>
+            <li><strong>移至 ID 階段（新增 Target Adder ＋ XOR 相等比較器 <code>=</code>）</strong>：
+              <br/>• Clock 3：<code>40: beq $1, $3, 7</code> 在 ID 判定相等、算出目標 <code>44 + 7×4 = 72</code>，拉高 <strong><code>IF.Flush</code></strong> 清空誤取的 <code>44: and</code>。
+              <br/>• Clock 4：IF 立刻擷取 <code>72: lw</code>，ID 為 1 個 Bubble → <strong>Taken 懲罰僅 1 週期</strong>（Not Taken 為 0 週期）。
+            </li>
+          </ul>
+          <div class="callout" style="margin-top:10px;">
+            <strong>代價</strong>：因為 <code>beq</code> 提早到 <strong>ID 階段</strong>就要用暫存器值比較（比一般指令早 1 週期），衍生出更嚴格的 Branch Data Hazards！
+          </div>
+        </div>
+        <div class="card">
+          <h3 class="muted-bar">Branch-in-ID 資料冒險停頓規則（Slides 87–89）</h3>
+          <table class="data">
+            <thead><tr><th>產生比較暫存器的前置指令</th><th class="center">Stall 週期</th><th>資料來源</th></tr></thead>
+            <tbody>
+              <tr><td>前第 2 條或第 3 條 <strong>ALU</strong> 指令</td><td class="center"><span class="tag sage">0 stalls</span></td><td><code>EX/MEM → ID</code> 或前半寫後半讀</td></tr>
+              <tr><td>前第 1 條（緊鄰）<strong>ALU</strong> 指令</td><td class="center"><span class="tag orange">1 stall</span></td><td>等 ALU 完 EX → <code>EX/MEM → ID</code></td></tr>
+              <tr><td>前第 2 條 <strong><code>lw</code></strong> 指令</td><td class="center"><span class="tag orange">1 stall</span></td><td>等 <code>lw</code> 完 MEM → <code>MEM/WB → ID</code></td></tr>
+              <tr><td>前第 1 條（緊鄰）<strong><code>lw</code></strong> 指令</td><td class="center"><span class="tag rose">2 stalls</span></td><td>等 <code>lw</code> 完 EX+MEM → <code>MEM/WB → ID</code></td></tr>
+            </tbody>
+          </table>
+          <pre style="margin-top:10px;"># 2-cycle stall 範例 (Slide 89):
+lw  $1, addr        # CC1(IF) CC2(ID) CC3(EX) CC4(MEM) CC5(WB)
+beq $1, $0, target  # CC2(IF) CC3(ID*) CC4(ID*) CC5(ID←Fwd) CC6(EX)</pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 10: INTERACTIVE DYNAMIC BRANCH PREDICTION & BTB -->
+    <section class="slide" data-title="Control Hazards (2)：2-Bit 分支預測與 BTB" data-section="§4.8">
+      <div class="slide-header">
+        <div>
+          <div class="slide-kicker">§4.8 Dynamic Branch Prediction · Interactive Explorer #3</div>
+          <h1>1-Bit 缺陷、互動式 2-Bit Saturating Counter 與 BTB</h1>
+        </div>
+        <div class="slide-source">wiki/concepts/branch-prediction-and-control-hazards.md</div>
+      </div>
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+          <h3 style="margin:0;">互動模擬器：2-Bit Saturating Counter（唯有連續 2 次誤判才翻轉預測）</h3>
+          <div class="btn-group" style="margin:0;">
+            <button class="btn" id="btn-fsm-t" onclick="stepFSM(true)">輸入：Taken (跳躍)</button>
+            <button class="btn" id="btn-fsm-nt" onclick="stepFSM(false)">輸入：Not Taken (不跳)</button>
+            <button class="btn active" id="btn-fsm-demo" onclick="runNestedLoopDemo()">▶ 模擬雙層迴圈（9T+1N × 2）</button>
+            <button class="btn" id="btn-fsm-reset" onclick="resetFSM()">↺ 重設</button>
+          </div>
+        </div>
+        <div class="fsm-row" id="fsm-row">
+          <div class="fsm-state current" data-st="3"><div class="fsm-bits">11</div><div class="fsm-label">Strongly Taken</div><div class="fsm-pred">預測：Taken</div></div>
+          <div class="fsm-state" data-st="2"><div class="fsm-bits">10</div><div class="fsm-label">Weakly Taken</div><div class="fsm-pred">預測：Taken</div></div>
+          <div class="fsm-state" data-st="1"><div class="fsm-bits">01</div><div class="fsm-label">Weakly Not Taken</div><div class="fsm-pred">預測：Not Taken</div></div>
+          <div class="fsm-state" data-st="0"><div class="fsm-bits">00</div><div class="fsm-label">Strongly Not Taken</div><div class="fsm-pred">預測：Not Taken</div></div>
+        </div>
+        <div id="fsm-log" style="font-family:var(--font-mono);font-size:0.77rem;color:var(--text-muted);margin-top:4px;">
+          目前狀態：11 (Strongly Taken) ｜ 2-bit 命中率：— ｜ 對照 1-bit 命中率：—
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <h3 class="rose">為何 1-Bit Predictor 在雙層迴圈會連續誤判兩次？</h3>
+          <ul class="clean">
+            <li><strong>第 1 次誤判</strong>：內層迴圈最後一輪結束（實際 Not Taken），1-bit 預測 Taken 失敗並立刻翻轉為 <code>Not Taken</code>。</li>
+            <li><strong>第 2 次誤判</strong>：外層重進內層第 1 輪（實際 Taken），1-bit 記著 <code>Not Taken</code> 再度誤判！</li>
+            <li><strong>2-Bit 優勢</strong>：離開內層僅由 <code>11 → 10</code>（仍預測 Taken），下次重進立即命中回到 <code>11</code>，誤判率直接砍半。</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3 class="sage">Branch Target Buffer (BTB, Slide 93)</h3>
+          <ul class="clean">
+            <li><strong>痛點</strong>：即使 BHT 準確猜對 Taken，IF 階段仍不知道目標位址，須等 ID 算完仍耗 <strong>1 cycle</strong>。</li>
+            <li><strong>BTB 機制</strong>：以 PC 為索引的目標位址快取 <code>(Branch PC → Target PC)</code>。</li>
+            <li><strong>效果</strong>：在 <strong>IF 階段同步查表</strong>，若 Hit 且預測 Taken，下個週期立刻擷取目標指令 → <strong>0-cycle taken branch penalty</strong>。</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 11: EXCEPTIONS & INTERRUPTS -->
+    <section class="slide" data-title="Exceptions 與 Interrupts（含管線沖刷）" data-section="§4.9">
+      <div class="slide-header">
+        <div>
+          <div class="slide-kicker">§4.9 Exceptions &amp; Interrupts</div>
+          <h1>MIPS CP0 例外處理、管線沖刷追蹤與 Precise Exceptions</h1>
+        </div>
+        <div class="slide-source">wiki/concepts/exceptions-and-interrupts.md</div>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <h3>MIPS CP0 單一入口 vs. Vectored Interrupts</h3>
+          <ul class="clean">
+            <li><strong>Exception（內部同步）</strong>：Undefined opcode、Arithmetic overflow、<code>syscall</code>；<strong>Interrupt（外部非同步）</strong>：來自外部 I/O 控制器。</li>
+            <li><strong>MIPS CP0 機制</strong>：<code>EPC</code> 存入 <strong><code>PC + 4</code></strong>（Handler 須減 4 還原）；<code>Cause</code> 記錄原因（<code>0</code>=未定義指令、<code>1</code>=溢位）；強制跳往 <strong><code>0x80000180</code></strong>。</li>
+            <li><strong>Vectored Interrupts</strong>：依原因直接跳往不同向量位址（Undefined <code>0xC0000000</code>、Overflow <code>0xC0000020</code>）。</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3 class="plum">Precise vs. Imprecise Exceptions（Slides 104–105）</h3>
+          <ul class="clean">
+            <li><strong>Precise Exceptions（精確例外）</strong>：嚴格依程式順序處理<strong>最早指令</strong>的例外，沖刷後方所有指令，讓外部狀態宛如循序執行；在 OoO / 多發射中需仰賴 <strong>ROB</strong> 維持。</li>
+            <li><strong>Imprecise Exceptions</strong>：直接停機儲存現場交由軟體收拾；簡化硬體但 Handler 極複雜，在現代多發射 OoO 中幾乎不可行。</li>
+          </ul>
+        </div>
+      </div>
+      <div class="card">
+        <h3 class="rose">實戰追蹤：<code>4C: add $1, $2, $1</code> 在 Clock 6 (EX) 發生 Overflow（Slides 101–103）</h3>
+        <table class="data">
+          <thead>
+            <tr><th class="center">Clock</th><th class="center">IF</th><th class="center">ID</th><th class="center">EX</th><th class="center">MEM</th><th class="center">WB</th><th>關鍵硬體動作</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="center"><strong>CC 6</strong></td>
+              <td class="mono">54: lw $16</td>
+              <td class="mono">50: slt $15</td>
+              <td class="stage-stall">4C: add $1 (OVF!)</td>
+              <td class="mono">48: or $13</td>
+              <td class="mono">44: and $12</td>
+              <td><code>EPC ← 0x50</code>、設定 Cause、拉高 <strong><code>IF/ID/EX.Flush</code></strong>、PC ← <code>0x80000180</code></td>
+            </tr>
+            <tr>
+              <td class="center"><strong>CC 7</strong></td>
+              <td class="stage-if">80000180: sw $25</td>
+              <td class="stage-stall">bubble (nop)</td>
+              <td class="stage-stall">bubble</td>
+              <td class="stage-stall">bubble</td>
+              <td class="stage-wb">48: or $13</td>
+              <td><code>or $13</code> 正常寫回；<code>$1</code> 未被破壞；Handler 首條指令開始執行</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- SLIDE 12: STATIC MULTIPLE ISSUE & LOOP UNROLLING -->
+    <section class="slide" data-title="ILP (1)：Static Dual-Issue 與 4x Loop Unrolling" data-section="§4.10">
+      <div class="slide-header">
+        <div>
+          <div class="slide-kicker">§4.10 Static Multiple Issue (VLIW)</div>
+          <h1>超越 CPI = 1：MIPS 靜態雙發射、迴圈展開與暫存器更名</h1>
+        </div>
+        <div class="slide-source">wiki/concepts/instruction-level-parallelism.md · formulas/</div>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <h3>MIPS Static Dual-Issue（IPC = 1.25）</h3>
+          <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:7px;">
+            <code>IPC = 1/CPI</code>（如 4GHz 4-way = 16 BIPS, Peak CPI = 0.25）。64-bit Packet = <strong>ALU/Branch + Load/Store</strong>；1-cycle Load-Use 等效損失 2 指令槽。
+          </p>
+          <table class="data">
+            <thead><tr><th class="center">Cycle</th><th>ALU / Branch Slot</th><th>Load / Store Slot</th></tr></thead>
+            <tbody>
+              <tr><td class="center">1</td><td class="mono">nop</td><td class="mono">lw $t0, 0($s1)</td></tr>
+              <tr><td class="center">2</td><td class="mono">addi $s1, $s1, -4</td><td class="mono">nop</td></tr>
+              <tr><td class="center">3</td><td class="mono">addu $t0, $t0, $s2</td><td class="mono">nop</td></tr>
+              <tr><td class="center">4</td><td class="mono">bne $s1, $zero, Loop</td><td class="mono">sw $t0, <strong>4($s1)</strong></td></tr>
+            </tbody>
+          </table>
+          <div class="callout neutral" style="margin-top:9px;">
+            <strong>效能</strong>：5 條指令 / 4 cycles = <strong>IPC 1.25</strong>（峰值 2.0）；因 <code>addi -4</code> 提前，<code>sw</code> 位移須改為 <code>4($s1)</code>。
+          </div>
+        </div>
+        <div class="card">
+          <h3 class="sage">4x Loop Unrolling + Register Renaming（IPC = 1.75）</h3>
+          <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:6px;">
+            改用 <code>$t0–$t3</code> 消除跨迭代 <strong>Anti-dependency (Name Dependence)</strong>，14 指令 / 8 cycles：
+          </p>
+          <table class="data">
+            <thead><tr><th class="center">Cyc</th><th>ALU / Branch</th><th>Load / Store</th></tr></thead>
+            <tbody>
+              <tr><td class="center">1</td><td class="mono">addi $s1,$s1,-16</td><td class="mono">lw $t0, 0($s1)</td></tr>
+              <tr><td class="center">2</td><td class="mono">nop</td><td class="mono">lw $t1, 12($s1)</td></tr>
+              <tr><td class="center">3</td><td class="mono">addu $t0,$t0,$s2</td><td class="mono">lw $t2, 8($s1)</td></tr>
+              <tr><td class="center">4</td><td class="mono">addu $t1,$t1,$s2</td><td class="mono">lw $t3, 4($s1)</td></tr>
+              <tr><td class="center">5</td><td class="mono">addu $t2,$t2,$s2</td><td class="mono">sw $t0, 16($s1)</td></tr>
+              <tr><td class="center">6</td><td class="mono">addu $t3,$t3,$s2</td><td class="mono">sw $t1, 12($s1)</td></tr>
+              <tr><td class="center">7</td><td class="mono">nop</td><td class="mono">sw $t2, 8($s1)</td></tr>
+              <tr><td class="center">8</td><td class="mono">bne $s1,$0,Loop</td><td class="mono">sw $t3, 4($s1)</td></tr>
+            </tbody>
+          </table>
+          <div class="callout" style="margin-top:8px;">
+            <strong>IPC = 14 / 8 = 1.75</strong>（每元素 4→2 cycles = <strong>2.0× 實質加速</strong>），代價是暫存器與程式碼體積增加。
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 13: DYNAMIC SUPERSCALAR & STATIC VS DYNAMIC COMPARISON -->
+    <section class="slide" data-title="ILP (2)：Dynamic Superscalar 與 Static vs. Dynamic 對比" data-section="§4.10">
+      <div class="slide-header">
+        <div>
+          <div class="slide-kicker">§4.10 Dynamic Scheduling &amp; Architecture Trade-offs</div>
+          <h1>動態亂序排程（RS + ROB）與 Static vs. Dynamic 橫向對比</h1>
+        </div>
+        <div class="slide-source">wiki/comparisons/static-vs-dynamic-multiple-issue.md</div>
+      </div>
+      <div class="grid-21">
+        <div class="card">
+          <h3>Superscalar 三段動態排程架構（Slide 121）</h3>
+          <svg viewBox="0 0 460 184" style="width:100%;">
+            <rect x="75" y="4" width="310" height="34" rx="8" fill="var(--m-blue-bg)" stroke="var(--m-blue)" stroke-width="1.5"/>
+            <text x="230" y="25" text-anchor="middle" fill="var(--text)" font-size="11" font-weight="600">Fetch &amp; Decode（In-order Issue）</text>
+
+            <line x1="150" y1="38" x2="63" y2="58" stroke="var(--text-muted)" stroke-width="1.2"/>
+            <line x1="205" y1="38" x2="174" y2="58" stroke="var(--text-muted)" stroke-width="1.2"/>
+            <line x1="255" y1="38" x2="285" y2="58" stroke="var(--text-muted)" stroke-width="1.2"/>
+            <line x1="310" y1="38" x2="396" y2="58" stroke="var(--text-muted)" stroke-width="1.2"/>
+
+            <rect x="14" y="58" width="98" height="32" rx="6" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.3"/>
+            <text x="63" y="78" text-anchor="middle" fill="var(--text)" font-size="10" font-weight="600">RS → Int</text>
+            <rect x="125" y="58" width="98" height="32" rx="6" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.3"/>
+            <text x="174" y="78" text-anchor="middle" fill="var(--text)" font-size="10" font-weight="600">RS → Int</text>
+            <rect x="236" y="58" width="98" height="32" rx="6" fill="var(--m-plum-bg)" stroke="var(--m-plum)" stroke-width="1.3"/>
+            <text x="285" y="78" text-anchor="middle" fill="var(--text)" font-size="10" font-weight="600">RS → FP</text>
+            <rect x="347" y="58" width="98" height="32" rx="6" fill="var(--m-sage-bg)" stroke="var(--m-sage)" stroke-width="1.3"/>
+            <text x="396" y="78" text-anchor="middle" fill="var(--text)" font-size="10" font-weight="600">RS → L/S</text>
+
+            <line x1="63" y1="90" x2="150" y2="140" stroke="var(--text-muted)" stroke-width="1.2"/>
+            <line x1="174" y1="90" x2="205" y2="140" stroke="var(--text-muted)" stroke-width="1.2"/>
+            <line x1="285" y1="90" x2="255" y2="140" stroke="var(--text-muted)" stroke-width="1.2"/>
+            <line x1="396" y1="90" x2="310" y2="140" stroke="var(--text-muted)" stroke-width="1.2"/>
+
+            <rect x="66" y="103" width="328" height="22" rx="11" fill="var(--bg-card)" stroke="var(--accent-border)" stroke-width="1"/>
+            <text x="230" y="118" text-anchor="middle" fill="var(--accent)" font-size="10.2" font-weight="600">Out-of-Order Execute（硬體更名＋隱藏 Cache Miss）</text>
+
+            <rect x="75" y="140" width="310" height="36" rx="8" fill="var(--m-sage-bg)" stroke="var(--m-sage)" stroke-width="1.5"/>
+            <text x="230" y="162" text-anchor="middle" fill="var(--text)" font-size="11" font-weight="600">Commit Unit / ROB（In-order Commit）</text>
+          </svg>
+          <ul class="clean" style="margin-top:6px;">
+            <li><strong>Speculation + ROB</strong>：分支與 Load 推測結果與例外皆緩衝於 ROB，驗證無誤才依序提交，猜錯即清空。</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3 class="muted-bar">Static (VLIW) vs. Dynamic (Superscalar) 核心對比</h3>
+          <table class="data">
+            <thead><tr><th>比較面向</th><th>Static (VLIW)</th><th>Dynamic (Superscalar)</th></tr></thead>
+            <tbody>
+              <tr><td><strong>排程主體</strong></td><td>Compiler 編譯期打包 Packet</td><td>CPU 硬體執行期動態發射</td></tr>
+              <tr><td><strong>執行順序</strong></td><td>In-order Issue &amp; Execute</td><td>In-order → <strong>OoO</strong> → In-order Commit</td></tr>
+              <tr><td><strong>暫存器更名</strong></td><td>靜態 Unrolling（耗暫存器/碼長）</td><td>硬體 RS + ROB 動態更名</td></tr>
+              <tr><td><strong>Speculation</strong></td><td>插 Fix-up 碼＋ISA 延遲例外</td><td>ROB 緩衝結果與例外，猜錯清空</td></tr>
+              <tr><td><strong>Cache Miss</strong></td><td><strong>弱</strong>（編譯期無法預知，卡死）</td><td><strong>強</strong>（不相依指令超車隱藏延遲）</td></tr>
+              <tr><td><strong>二進位可攜性</strong></td><td><strong>差</strong>（綁定延遲，換代須重編）</td><td><strong>優</strong>（舊碼自動受惠新微架構）</td></tr>
+              <tr><td><strong>複雜度與功耗</strong></td><td><strong>低</strong>（單位瓦特能效佳）</td><td><strong>高</strong>（易撞上 Power Wall）</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 14: ILP LIMITS, POWER WALL & DGEMM -->
+    <section class="slide" data-title="ILP 瓶頸、Power Wall 與 DGEMM AVX 實戰" data-section="§4.10 & §4.12">
+      <div class="slide-header">
+        <div>
+          <div class="slide-kicker">§4.10 &amp; §4.12 Power Efficiency &amp; Matrix Multiply</div>
+          <h1>ILP 極限、Power Wall 世代演進與 DGEMM (AVX + Unroll) 實測</h1>
+        </div>
+        <div class="slide-source">wiki/concepts/instruction-level-parallelism.md</div>
+      </div>
+      <div class="grid-12">
+        <div class="card">
+          <h3 class="rose">微架構世代演進與 Power Wall（Slide 126）</h3>
+          <table class="data">
+            <thead><tr><th>Microprocessor</th><th class="center">Year</th><th class="center">Clock</th><th class="center">Stages</th><th class="center">Width</th><th class="center">OoO</th><th class="center">Cores</th><th class="center">Power</th></tr></thead>
+            <tbody>
+              <tr><td>i486</td><td class="center">1989</td><td class="center">25 MHz</td><td class="center">5</td><td class="center">1</td><td class="center">No</td><td class="center">1</td><td class="center">5 W</td></tr>
+              <tr><td>Pentium</td><td class="center">1993</td><td class="center">66 MHz</td><td class="center">5</td><td class="center">2</td><td class="center">No</td><td class="center">1</td><td class="center">10 W</td></tr>
+              <tr><td>Pentium Pro</td><td class="center">1997</td><td class="center">200 MHz</td><td class="center">10</td><td class="center">3</td><td class="center">Yes</td><td class="center">1</td><td class="center">29 W</td></tr>
+              <tr><td>P4 Willamette</td><td class="center">2001</td><td class="center">2.0 GHz</td><td class="center">22</td><td class="center">3</td><td class="center">Yes</td><td class="center">1</td><td class="center">75 W</td></tr>
+              <tr><td><strong>P4 Prescott</strong></td><td class="center">2004</td><td class="center">3.6 GHz</td><td class="center" style="color:var(--m-rose);font-weight:700;">31</td><td class="center">3</td><td class="center">Yes</td><td class="center">1</td><td class="center" style="color:var(--m-rose);font-weight:700;">103 W</td></tr>
+              <tr><td>Core</td><td class="center">2006</td><td class="center">2.93 GHz</td><td class="center"><strong>14</strong></td><td class="center">4</td><td class="center">Yes</td><td class="center"><strong>2</strong></td><td class="center">75 W</td></tr>
+              <tr><td>UltraSparc III</td><td class="center">2003</td><td class="center">1.95 GHz</td><td class="center">14</td><td class="center">4</td><td class="center">No</td><td class="center">1</td><td class="center">90 W</td></tr>
+              <tr><td>UltraSparc T1</td><td class="center">2005</td><td class="center">1.2 GHz</td><td class="center"><strong>6</strong></td><td class="center">1</td><td class="center">No</td><td class="center"><strong>8</strong></td><td class="center">70 W</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card">
+          <h3>ILP 極限與 §4.12 矩陣乘法 DGEMM（Slides 125, 132–134）</h3>
+          <ul class="clean" style="margin-bottom:10px;">
+            <li><strong>為何難達峰值 ILP？</strong>真實資料相依、Pointer Aliasing、有限 Issue Window 與記憶體延遲／頻寬瓶頸。</li>
+            <li><strong>DGEMM 4x Unroll + AVX</strong>：以 4 個獨立 256-bit <code>__m256d</code>（<code>%ymm1–%ymm4</code>）執行 <code>vbroadcastsd</code> + <code>vmulpd</code> + <code>vaddpd</code>，同時榨出 <strong>SIMD (DLP) ＋ ILP</strong>！</li>
+          </ul>
+          <div class="bar-row"><span>Unoptimized</span><div class="bar-track"><div class="bar-fill" style="width:11.6%;background:var(--text-muted);opacity:0.45;"></div></div><strong class="mono">1.7 GF</strong></div>
+          <div class="bar-row"><span>AVX (SIMD)</span><div class="bar-track"><div class="bar-fill" style="width:43.8%;background:var(--accent);opacity:0.65;"></div></div><strong class="mono">6.4 GF</strong></div>
+          <div class="bar-row"><span>AVX + 4x Unroll</span><div class="bar-track"><div class="bar-fill" style="width:100%;background:var(--accent);"></div></div><strong class="mono" style="color:var(--accent);">14.6 GF</strong></div>
+          <div class="callout" style="margin-top:10px;">
+            總加速達 <strong>8.6×</strong>（光疊加 4x Unroll 就比純 AVX 再快 <strong>2.28×</strong>，徹底填滿 OoO 多重執行管線）。
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 15: REAL STUFF - CORTEX-A8 VS CORE I7 -->
+    <section class="slide" data-title="Real Stuff：ARM Cortex-A8 vs. Intel Core i7 920" data-section="§4.11">
+      <div class="slide-header">
+        <div>
+          <div class="slide-kicker">§4.11 Real Stuff Microarchitectures</div>
+          <h1>行動端 2W vs. 伺服器端 130W：Cortex-A8 與 Core i7 實戰對比</h1>
+        </div>
+        <div class="slide-source">wiki/comparisons/arm-cortex-a8-vs-intel-core-i7.md</div>
+      </div>
+      <div class="grid-12">
+        <div class="card">
+          <h3>核心規格橫向對比（Slide 127）</h3>
+          <table class="data">
+            <thead><tr><th>項目</th><th>ARM Cortex-A8</th><th>Intel Core i7 920</th></tr></thead>
+            <tbody>
+              <tr><td>定位 / <strong>TDP</strong></td><td>行動裝置 · <strong>2 W</strong></td><td>伺服器雲端 · <strong>130 W (65×)</strong></td></tr>
+              <tr><td>時脈 / 核心數</td><td>1 GHz · 1 Core</td><td>2.66 GHz · 4 Cores</td></tr>
+              <tr><td>管線深度 / 峰值 IPC</td><td><strong>14 stages</strong> · Peak IPC = <strong>2</strong></td><td><strong>14 stages</strong> · Peak IPC = <strong>4</strong></td></tr>
+              <tr><td>排程架構</td><td><strong>Static In-order</strong>（無亂序）</td><td><strong>Dynamic OoO + Speculation</strong></td></tr>
+              <tr><td>關鍵緩衝與前端</td><td>12-entry Fetch Q；誤判罰 <strong>13 cyc</strong></td><td>x86→µop 解碼、<strong>128-ROB</strong>、<strong>36-RS</strong></td></tr>
+              <tr><td>快取配置</td><td>L1 32K I/D · L2 128–1024K</td><td>L1 32K I/D · L2 256K · <strong>L3 8MB</strong></td></tr>
+              <tr><td>SPEC CPI (Ideal)</td><td>1.41 (<code>twolf</code>) – <strong>5.17</strong> (<code>mcf</code>) (0.50)</td><td>0.44 (<code>libq</code>) – <strong>2.67</strong> (<code>mcf</code>) (0.25)</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card">
+          <h3 class="rose">Core i7 推測執行的「誤判放大效應」（Slide 131）</h3>
+          <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:8px;line-height:1.5;">
+            4-way 14-stage 深寬推測下，僅 <strong>5–10% 分支誤判率</strong>，即造成高達 <strong>24–39% 的無效工作浪費（Wasted Work）</strong>：
+          </p>
+          <div class="bar-row"><span>mcf (6% 誤判)</span><div class="bar-track"><div class="bar-fill" style="width:97%;background:var(--accent);"></div></div><strong class="mono">39% 浪費</strong></div>
+          <div class="bar-row"><span>astar (9% 誤判)</span><div class="bar-track"><div class="bar-fill" style="width:95%;background:var(--accent);opacity:0.9;"></div></div><strong class="mono">38% 浪費</strong></div>
+          <div class="bar-row"><span>gobmk (10%)</span><div class="bar-track"><div class="bar-fill" style="width:80%;background:var(--accent);opacity:0.75;"></div></div><strong class="mono">32% 浪費</strong></div>
+          <div class="bar-row"><span>sjeng (5%)</span><div class="bar-track"><div class="bar-fill" style="width:62%;background:var(--accent);opacity:0.6;"></div></div><strong class="mono">25% 浪費</strong></div>
+          <div class="bar-row"><span>omnetpp (2%)</span><div class="bar-track"><div class="bar-fill" style="width:55%;background:var(--accent);opacity:0.48;"></div></div><strong class="mono">22% 浪費</strong></div>
+          <div class="bar-row"><span>libquantum (0%)</span><div class="bar-track"><div class="bar-fill" style="width:3%;background:var(--m-sage);"></div></div><strong class="mono">1% 浪費</strong></div>
+          <div class="callout neutral" style="margin-top:9px;">
+            <strong>啟示</strong>：同為 14 級管線，Core i7 用 65 倍功耗換約 2 倍更低 CPI；遇 Cache Miss 拖長分支解析時（<code>omnetpp</code>），極低誤判也會塞滿無效推測指令。
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 16: INTERACTIVE 11-CYCLE COMBINED HAZARD TRACER -->
+    <section class="slide" data-title="綜合實戰追蹤：11-Cycle 含 Stall 與 Branch 演練" data-section="Exercises · Interactive #4">
+      <div class="slide-header">
+        <div>
+          <div class="slide-kicker">Cross-Concept Drill · Interactive Explorer #4</div>
+          <h1>綜合管線追蹤演練：Load-Use + Branch-in-ID + IF.Flush（11 Cycles）</h1>
+        </div>
+        <div class="slide-source">wiki/exercises/ch04-pipeline-hazards-and-scheduling-traps.md</div>
+      </div>
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:9px;">
+          <div style="font-size:0.82rem;color:var(--text-muted);">
+            條件：完整 Forwarding ＋ Hazard Detection ＋ 前半寫後半讀 ＋ <strong>Branch 在 ID（Predict Not Taken，本例實際 Taken）</strong>
+          </div>
+          <div class="btn-group" style="margin:0;">
+            <button class="btn" id="tr-prev" onclick="stepTrace(-1)">← 上一週期</button>
+            <button class="btn active" id="tr-next" onclick="stepTrace(1)">下一週期 →</button>
+            <button class="btn" id="tr-all" onclick="setTrace(11)">顯示全部 (CC 11)</button>
+            <button class="btn" id="tr-reset" onclick="setTrace(1)">↺ 從 CC 1 開始</button>
+          </div>
+        </div>
+        <table class="data" id="trace-table">
+          <thead>
+            <tr>
+              <th>指令序列</th>
+              <th class="center" data-cc="1">CC1</th><th class="center" data-cc="2">CC2</th><th class="center" data-cc="3">CC3</th>
+              <th class="center" data-cc="4">CC4</th><th class="center" data-cc="5">CC5</th><th class="center" data-cc="6">CC6</th>
+              <th class="center" data-cc="7">CC7</th><th class="center" data-cc="8">CC8</th><th class="center" data-cc="9">CC9</th>
+              <th class="center" data-cc="10">CC10</th><th class="center" data-cc="11">CC11</th>
+            </tr>
+          </thead>
+          <tbody id="trace-body"></tbody>
+        </table>
+        <div class="callout" id="trace-note" style="margin-top:11px;"></div>
+      </div>
+      <div class="grid-3">
+        <div class="card">
+          <h3 class="rose">開銷 #1：Load-Use Stall</h3>
+          <p style="font-size:0.8rem;line-height:1.48;"><code>add $t1, $t0, $s1</code> 緊接 <code>lw $t0</code> → CC 4 強制停 <strong>1 週期</strong>，CC 5 由 <code>MEM/WB → EX</code> 前遞 <code>$t0</code>。</p>
+        </div>
+        <div class="card">
+          <h3>開銷 #2：Branch Data Stall</h3>
+          <p style="font-size:0.8rem;line-height:1.48;"><code>beq $t1, $s2</code> 在 ID 緊接 <code>add $t1</code> → CC 6 於 ID 停 <strong>1 週期</strong>，等 <code>add</code> 跑完 EX 後由 <code>EX/MEM → ID</code> 前遞 <code>$t1</code>。</p>
+        </div>
+        <div class="card">
+          <h3 class="plum">開銷 #3：Taken Branch Flush</h3>
+          <p style="font-size:0.8rem;line-height:1.48;">CC 6 判定 <strong>Taken</strong>，拉高 <code>IF.Flush</code> 沖刷誤取的 <code>sub</code>（<strong>1 週期</strong>），CC 7 改取目標 <code>or</code>，共耗 <strong>11 cycles</strong>！</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 17: EXAM TRAPS & FALLACIES -->
+    <section class="slide" data-title="六大高頻考試陷阱與 §4.14 Fallacies & Pitfalls" data-section="§4.14 & Exercises">
+      <div class="slide-header">
+        <div>
+          <div class="slide-kicker">§4.14 Fallacies, Pitfalls &amp; Review Checklist</div>
+          <h1>Ch4 六大高頻考試易錯點與 §4.14 設計迷思</h1>
+        </div>
+        <div class="slide-source">wiki/exercises/ch04-pipeline-hazards-and-scheduling-traps.md</div>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <h3 class="rose">六大高頻考試易錯點（Traps）</h3>
+          <ul class="clean">
+            <li><strong>Trap 1（Throughput ≠ Latency）</strong>：5 級管線不縮短單指令時間（<code>lw</code> 800→1000ps），不平衡時加速比小於 5。</li>
+            <li><strong>Trap 2（Double Data Hazard &amp; <code>$0</code>）</strong>：MEM Forwarding 必檢 <code>Rd != 0</code> 且 <code>!(EX Hazard)</code>，確保最新值優先且不汙染 <code>$zero</code>。</li>
+            <li><strong>Trap 3（EX vs. Branch-in-ID Stall）</strong>：緊鄰 ALU→ALU <code>0 stall</code>，但 ALU→<code>beq</code> <strong><code>1 stall</code></strong>；緊鄰 <code>lw</code>→ALU <code>1 stall</code>，但 <code>lw</code>→<code>beq</code> <strong><code>2 stalls</code></strong>！</li>
+            <li><strong>Trap 4（Write Reg 傳遞）</strong>：目的暫存器編號必隨 <code>ID/EX → EX/MEM → MEM/WB</code> 傳至 WB。</li>
+            <li><strong>Trap 5（Control Don't-Care）</strong>：寫入控制 <code>RegWrite / MemWrite / MemRead</code> 絕不可填 <code>X</code>。</li>
+            <li><strong>Trap 6（EPC 偏移）</strong>：硬體寫入 <code>EPC</code> 的是 <strong><code>PC + 4</code></strong>，Handler 須減 4 還原。</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>§4.14 Fallacies &amp; Pitfalls（Slides 135–137）</h3>
+          <ul class="clean">
+            <li><strong>Fallacy 1 —「Pipelining is easy」</strong>：原理直觀，但魔鬼全在細節（Double Data Hazard、Branch Stall、OoO Precise Exceptions）。</li>
+            <li><strong>Fallacy 2 —「Pipelining 與製程技術無關」</strong>：電晶體紅利才使深管線與 OoO 可行；ISA 亦須隨技術演進（如 Predicated Instructions）。</li>
+            <li><strong>Pitfall —「不良 ISA 設計大幅拖累管線化」</strong>：
+              <br/>1. 複雜變長 ISA（VAX / IA-32）：被迫耗費前端轉譯成 <strong>micro-ops</strong>。
+              <br/>2. 複雜定址模式（暫存器更新副作用或間接記憶體定址）。
+              <br/>3. <strong>Delayed Branches</strong>：短管線的 ISA 延遲槽在現代深管線成為歷史包袱。
+            </li>
+          </ul>
+          <div class="callout" style="margin-top:9px;">
+            <strong>全章總結</strong>：ISA 與 Datapath/Control 互為因果；Pipelining 與 ILP 靠並行換吞吐，卻終究受限於資料相依與 <strong>Power Wall</strong>。
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Overview Modal -->
+  <div class="overview-modal" id="overview-modal">
+    <div style="max-width:1220px;margin:0 auto 14px;display:flex;justify-content:space-between;align-items:center;">
+      <h2 style="font-size:1.05rem;font-weight:700;">投影片總覽（共 17 頁 · 點選任意頁跳轉 · 按 ESC 關閉）</h2>
+      <button class="btn" onclick="toggleOverview(false)">關閉</button>
+    </div>
+    <div class="overview-grid" id="overview-grid"></div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div style="display:flex;gap:7px;">
+      <button class="btn" id="btn-prev">← 上一頁</button>
+      <button class="btn" id="btn-next">下一頁 →</button>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-bar" id="progress-bar">
+        <div class="progress-fill" id="progress-fill"></div>
+      </div>
+      <div class="slide-counter" id="slide-counter">01 / 17</div>
+    </div>
+    <div class="hint">← / → / Space 換頁 · O 總覽 · T 主題 · F 全螢幕</div>
+  </footer>
+
+  <script>
+    const slides = Array.from(document.querySelectorAll('.slide'));
+    let current = 0;
+
+    function updateSlide() {
+      slides.forEach((s, i) => s.classList.toggle('active', i === current));
+      const pct = ((current + 1) / slides.length) * 100;
+      document.getElementById('progress-fill').style.width = pct + '%';
+      document.getElementById('slide-counter').textContent =
+        String(current + 1).padStart(2, '0') + ' / ' + String(slides.length).padStart(2, '0');
+      document.getElementById('btn-prev').disabled = current === 0;
+      document.getElementById('btn-next').disabled = current === slides.length - 1;
+      document.querySelectorAll('.overview-card').forEach((c, i) => {
+        c.classList.toggle('current', i === current);
+      });
+    }
+
+    function goTo(idx) {
+      current = Math.max(0, Math.min(slides.length - 1, idx));
+      updateSlide();
+      toggleOverview(false);
+    }
+
+    function next() { if (current < slides.length - 1) { current++; updateSlide(); } }
+    function prev() { if (current > 0) { current--; updateSlide(); } }
+
+    document.getElementById('btn-next').addEventListener('click', next);
+    document.getElementById('btn-prev').addEventListener('click', prev);
+
+    document.getElementById('progress-bar').addEventListener('click', (e) => {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const ratio = (e.clientX - rect.left) / rect.width;
+      goTo(Math.floor(ratio * slides.length));
+    });
+
+    // Overview modal
+    const overviewModal = document.getElementById('overview-modal');
+    const overviewGrid = document.getElementById('overview-grid');
+    slides.forEach((s, i) => {
+      const card = document.createElement('div');
+      card.className = 'overview-card' + (i === 0 ? ' current' : '');
+      card.innerHTML = `<div class="num">SLIDE ${String(i + 1).padStart(2, '0')}</div>
+        <div class="title">${s.dataset.title}</div>
+        <div class="sec">${s.dataset.section}</div>`;
+      card.addEventListener('click', () => goTo(i));
+      overviewGrid.appendChild(card);
+    });
+
+    function toggleOverview(force) {
+      const open = typeof force === 'boolean' ? force : !overviewModal.classList.contains('open');
+      overviewModal.classList.toggle('open', open);
+    }
+    document.getElementById('btn-overview').addEventListener('click', () => toggleOverview());
+
+    /* Auto-Sync System Theme + Manual Cycle (auto -> light -> dark -> auto) */
+    const mediaDark = window.matchMedia('(prefers-color-scheme: dark)');
+    let themeMode = 'auto';
+    const themeBtn = document.getElementById('btn-theme');
+
+    function applyTheme() {
+      const html = document.documentElement;
+      if (themeMode === 'auto') {
+        html.removeAttribute('data-theme');
+        themeBtn.textContent = `主題：跟隨系統 (${mediaDark.matches ? '深' : '淺'})`;
+      } else if (themeMode === 'light') {
+        html.setAttribute('data-theme', 'light');
+        themeBtn.textContent = '主題：淺色';
+      } else {
+        html.setAttribute('data-theme', 'dark');
+        themeBtn.textContent = '主題：深色';
+      }
+    }
+
+    function cycleTheme() {
+      themeMode = themeMode === 'auto' ? 'light' : (themeMode === 'light' ? 'dark' : 'auto');
+      applyTheme();
+    }
+
+    mediaDark.addEventListener('change', () => {
+      if (themeMode === 'auto') applyTheme();
+    });
+    themeBtn.addEventListener('click', cycleTheme);
+    applyTheme();
+
+    // Fullscreen
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen?.();
+      } else {
+        document.exitFullscreen?.();
+      }
+    }
+    document.getElementById('btn-full').addEventListener('click', toggleFullscreen);
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { e.preventDefault(); next(); }
+      else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); prev(); }
+      else if (e.key === 'Home') goTo(0);
+      else if (e.key === 'End') goTo(slides.length - 1);
+      else if (e.key.toLowerCase() === 'o') toggleOverview();
+      else if (e.key === 'Escape') toggleOverview(false);
+      else if (e.key.toLowerCase() === 't') cycleTheme();
+      else if (e.key.toLowerCase() === 'f') toggleFullscreen();
+    });
+
+    /* Interactive Widget #1: Single-Cycle Control Explorer (Slide 03) */
+    const instrData = {
+      rtype: {
+        badge: 'ALUOp = 10 → 依 funct[5:0] 解碼（0000 AND / 0001 OR / 0010 add / 0110 sub / 0111 slt）',
+        signals: { RegDst:'1', ALUSrc:'0', MemtoReg:'0', RegWrite:'1', MemRead:'0', MemWrite:'0', Branch:'0', ALUOp1:'1', ALUOp0:'0', Jump:'0' },
+        desc: '<strong>R-type 路徑追蹤（600ps）</strong>：取指 → 讀 rs 與 rt → ALUSrc=0 選 Read data 2 進 ALU 依 funct 運算 → 繞過 Data Memory (MemtoReg=0) → RegDst=1 寫回 <strong>rd</strong> (RegWrite=1)；PC ← PC + 4。'
+      },
+      lw: {
+        badge: 'ALUOp = 00 → ALU 固定執行 add (0010) 計算有效記憶體位址',
+        signals: { RegDst:'0', ALUSrc:'1', MemtoReg:'1', RegWrite:'1', MemRead:'1', MemWrite:'0', Branch:'0', ALUOp1:'0', ALUOp0:'0', Jump:'0' },
+        desc: '<strong>lw 路徑追蹤（800ps — Critical Path！）</strong>：取指 → 讀 rs 並將 16-bit offset 符號擴充 → ALUSrc=1 進 ALU 相加 → MemRead=1 讀 Data Memory → MemtoReg=1 寫回 <strong>rt</strong> (RegDst=0, RegWrite=1)。'
+      },
+      sw: {
+        badge: 'ALUOp = 00 → ALU 固定執行 add (0010) 計算寫入位址',
+        signals: { RegDst:'X', ALUSrc:'1', MemtoReg:'X', RegWrite:'0', MemRead:'0', MemWrite:'1', Branch:'0', ALUOp1:'0', ALUOp0:'0', Jump:'0' },
+        desc: '<strong>sw 路徑追蹤（700ps）</strong>：取指 → 讀 rs（基底）與 rt（欲寫入資料）→ ALUSrc=1 選 Sign-extend 算位址 → MemWrite=1 將 Read data 2 寫入 Data Memory；<strong>RegWrite 嚴格為 0</strong>。'
+      },
+      beq: {
+        badge: 'ALUOp = 01 → ALU 固定執行 subtract (0110) 並檢查 Zero 旗標',
+        signals: { RegDst:'X', ALUSrc:'0', MemtoReg:'X', RegWrite:'0', MemRead:'0', MemWrite:'0', Branch:'1', ALUOp1:'0', ALUOp0:'1', Jump:'0' },
+        desc: '<strong>beq 路徑追蹤（500ps）</strong>：取指 → 讀 rs 與 rt 進 ALU 相減（ALUSrc=0），同時專用加法器算 (PC+4) + (SignExt(offset)<<2) → 若 Branch=1 且 Zero=1，PCSrc=1 更新 PC 為 Branch Target。'
+      },
+      j: {
+        badge: 'Jump = 1 → 直接以 (PC+4)[31:28] || Instr[25:0] || 00 更新 PC',
+        signals: { RegDst:'X', ALUSrc:'X', MemtoReg:'X', RegWrite:'0', MemRead:'0', MemWrite:'0', Branch:'X', ALUOp1:'X', ALUOp0:'X', Jump:'1' },
+        desc: '<strong>j 路徑追蹤</strong>：取指 → 將 26-bit word address 左移 2 位元成 28-bit，串接 (PC+4) 最高 4 bits 成 32-bit 目標位址 → Jump=1 經最外層 PC Mux 寫入 PC；所有寫入控制皆為 0。'
+      }
+    };
+
+    function selectInstr(key, btn) {
+      if (btn) {
+        btn.parentElement.querySelectorAll('.btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      }
+      const d = instrData[key];
+      document.getElementById('sc-alu-badge').textContent = d.badge;
+      document.getElementById('sc-desc').innerHTML = d.desc;
+      const box = document.getElementById('sc-signals');
+      box.innerHTML = Object.entries(d.signals).map(([k, v]) => {
+        const cls = v === '1' ? 'on' : (v === 'X' ? 'dc' : 'off');
+        return `<div class="sig-box ${cls}"><div class="sig-name">${k}</div><div class="sig-val">${v}</div></div>`;
+      }).join('');
+    }
+    selectInstr('rtype');
+
+    /* Interactive Widget #2: Code Scheduling Toggle (Slide 06) */
+    function toggleSched(mode) {
+      document.getElementById('sched-before-btn').classList.toggle('active', mode === 'before');
+      document.getElementById('sched-after-btn').classList.toggle('active', mode === 'after');
+      const el = document.getElementById('sched-view');
+      if (mode === 'before') {
+        el.innerHTML = `
+          <pre>lw  $t1, 0($t0)     # 載入 B
+lw  $t2, 4($t0)     # 載入 E
+<span style="color:var(--m-rose);font-weight:700;"># [STALL 1 cycle]   ← add 緊接使用 $t2 (Load-Use!)</span>
+add $t3, $t1, $t2   # A = B + E
+sw  $t3, 12($t0)    # 存回 A
+lw  $t4, 8($t0)     # 載入 F
+<span style="color:var(--m-rose);font-weight:700;"># [STALL 1 cycle]   ← add 緊接使用 $t4 (Load-Use!)</span>
+add $t5, $t1, $t4   # C = B + F
+sw  $t5, 16($t0)    # 存回 C</pre>
+          <div class="callout rose">
+            <strong>分析（共 13 Cycles）</strong>：<br/>
+            • 7 條指令 + 4 週期管線填滿 + <strong>2 次 Load-Use Stall</strong> = <strong>13 Cycles</strong>。<br/>
+            • 兩次 <code>lw</code> 之後立刻接著 <code>add</code> 讀取載入值，硬體被迫插入 2 個 Bubble。<br/>
+            • 點選右側「重排後」按鈕查看編譯器如何完全消除停頓！
+          </div>`;
+      } else {
+        el.innerHTML = `
+          <pre>lw  $t1, 0($t0)     # 載入 B
+lw  $t2, 4($t0)     # 載入 E
+<span style="color:var(--m-sage);font-weight:700;">lw  $t4, 8($t0)     # ↑ 提前載入 F，完美填補 $t2 的 Load-Use 空檔！</span>
+add $t3, $t1, $t2   # A = B + E（$t2 已備妥，0 stall）
+sw  $t3, 12($t0)    # 存回 A（同時填補 $t4 的 Load-Use 空檔！）
+add $t5, $t1, $t4   # C = B + F（$t4 已備妥，0 stall）
+sw  $t5, 16($t0)    # 存回 C</pre>
+          <div class="callout sage">
+            <strong>分析（共 11 Cycles — 節省 2 週期！）</strong>：<br/>
+            • 7 條指令 + 4 週期管線填滿 + <strong>0 Stalls</strong> = <strong>11 Cycles</strong>。<br/>
+            • 不更動任何硬體，單靠編譯器知曉管線結構重排不相依指令，即可完全隱藏 Load-Use 延遲！
+          </div>`;
+      }
+    }
+    toggleSched('before');
+
+    /* Interactive Widget #3: 2-Bit Predictor FSM (Slide 10) */
+    let state2 = 3;
+    let state1 = 1;
+    let totalSteps = 0, hits2 = 0, hits1 = 0;
+
+    function renderFSM(lastMsg) {
+      document.querySelectorAll('#fsm-row .fsm-state').forEach(el => {
+        el.classList.toggle('current', Number(el.dataset.st) === state2);
+      });
+      const names = ['00 (Strongly Not Taken)', '01 (Weakly Not Taken)', '10 (Weakly Taken)', '11 (Strongly Taken)'];
+      const acc2 = totalSteps ? `${hits2}/${totalSteps} (${Math.round(hits2 * 100 / totalSteps)}%)` : '—';
+      const acc1 = totalSteps ? `${hits1}/${totalSteps} (${Math.round(hits1 * 100 / totalSteps)}%)` : '—';
+      document.getElementById('fsm-log').textContent =
+        `目前狀態：${names[state2]} ｜ 2-bit 命中率：${acc2} ｜ 對照 1-bit 命中率：${acc1}` + (lastMsg ? ` ｜ ${lastMsg}` : '');
+    }
+
+    function stepFSM(actualTaken) {
+      const pred2 = state2 >= 2;
+      const pred1 = state1 === 1;
+      totalSteps++;
+      if (pred2 === actualTaken) hits2++;
+      if (pred1 === actualTaken) hits1++;
+      state2 = actualTaken ? Math.min(3, state2 + 1) : Math.max(0, state2 - 1);
+      state1 = actualTaken ? 1 : 0;
+      renderFSM(`實際 ${actualTaken ? 'Taken' : 'Not Taken'} → 2-bit ${pred2 === actualTaken ? '命中 ✓' : '誤判 ✗'}`);
+    }
+
+    function resetFSM() {
+      state2 = 3; state1 = 1; totalSteps = 0; hits2 = 0; hits1 = 0;
+      renderFSM('已重設為 Strongly Taken (11)');
+    }
+
+    function runNestedLoopDemo() {
+      resetFSM();
+      const seq = [
+        true,true,true,true,true,true,true,true,true,false,
+        true,true,true,true,true,true,true,true,true,false
+      ];
+      seq.forEach(t => stepFSM(t));
+      renderFSM('雙層迴圈 20 次分支完畢：2-bit 僅誤判 2 次 (90%) vs 1-bit 誤判 3 次 (85%)！');
+    }
+
+    /* Interactive Widget #4: 11-Cycle Pipeline Hazard Stepper (Slide 16) */
+    const traceRows = [
+      { label: '1: lw  $t0, 0($s0)',       cells: { 1:['IF','if'], 2:['ID','id'], 3:['EX','ex'], 4:['MEM','mem'], 5:['WB','wb'] } },
+      { label: '2: add $t1, $t0, $s1',     cells: { 2:['IF','if'], 3:['ID','id'], 4:['stall','stall'], 5:['EX','ex'], 6:['MEM','mem'], 7:['WB','wb'] } },
+      { label: '3: beq $t1, $s2, Target',  cells: { 3:['IF','if'], 4:['stall','stall'], 5:['ID','id'], 6:['stall','stall'], 7:['EX','ex'], 8:['MEM','mem'], 9:['WB','wb'] } },
+      { label: '4: sub $t2, $s3, $s4',     cells: { 5:['IF','if'], 6:['stall','stall'], 7:['flush','stall'] } },
+      { label: '5: or  $t3, $t1, $s5',     cells: { 7:['IF','if'], 8:['ID','id'], 9:['EX','ex'], 10:['MEM','mem'], 11:['WB','wb'] } }
+    ];
+
+    const traceNotes = {
+      1: '<strong>CC 1</strong>：<code>lw $t0, 0($s0)</code> 進入 IF 擷取指令。',
+      2: '<strong>CC 2</strong>：<code>lw</code> 進入 ID；緊鄰相依的 <code>add $t1, $t0, $s1</code> 進入 IF。',
+      3: '<strong>CC 3</strong>：<code>lw</code> 在 EX（<code>ID/EX.MemRead=1</code>），<code>add</code> 在 ID 偵測到 <strong>Load-Use Hazard</strong>！<code>beq</code> 同時進入 IF。',
+      4: '<strong>CC 4（關鍵停頓 #1）</strong>：Hazard Detection Unit 凍結 PC 與 <code>IF/ID</code>，<code>add</code> 與 <code>beq</code> 各停 1 週期；<code>lw</code> 進入 MEM 讀取 <code>$t0</code>。',
+      5: '<strong>CC 5（Forwarding）</strong>：<code>lw</code> 在 WB 將 <code>$t0</code> 透過 <strong>MEM/WB → EX</strong> 前遞給 <code>add</code>！<code>beq</code> 進入 ID，偵測到緊鄰 <code>add $t1</code> 尚未算完；<code>sub</code> 開始預取。',
+      6: '<strong>CC 6（關鍵停頓 #2 + 分支判斷）</strong>：<code>beq</code> 停在 ID 1 週期等待 <code>add</code>（此時在 MEM），成功經 <strong>EX/MEM → ID</strong> 拿到 <code>$t1</code> 並判定 <strong>Taken</strong>！拉高 <strong><code>IF.Flush</code></strong> 準備沖刷 <code>sub</code>。',
+      7: '<strong>CC 7（關鍵沖刷 #3）</strong>：<code>sub</code> 被 <code>IF.Flush</code> 變成 bubble 丟棄；PC 切往 <code>Target</code> 擷取 <code>or $t3, $t1, $s5</code>；<code>add</code> 完成 WB。',
+      8: '<strong>CC 8</strong>：<code>or</code> 進入 ID 正常讀取已寫回的 <code>$t1</code>；<code>beq</code> 通過 MEM。',
+      9: '<strong>CC 9</strong>：<code>or</code> 進入 EX；<code>beq</code> 走完 WB。',
+      10: '<strong>CC 10</strong>：<code>or</code> 進入 MEM。',
+      11: '<strong>CC 11（全數完成！）</strong>：4 條有效指令（<code>lw, add, beq, or</code>）原本僅需 <code>4 + 4 = 8</code> 週期，加上 <strong>1 Load-Use + 1 Branch Data + 1 IF.Flush</strong>，共耗時 <strong>11 Cycles</strong>！'
+    };
+
+    let traceCC = 11;
+
+    function renderTrace() {
+      const tbody = document.getElementById('trace-body');
+      tbody.innerHTML = traceRows.map(r => {
+        let html = `<tr><td class="mono">${r.label}</td>`;
+        for (let c = 1; c <= 11; c++) {
+          const item = r.cells[c];
+          const isActiveCol = c === traceCC ? ' col-active' : '';
+          if (item && c <= traceCC) {
+            html += `<td class="stage-${item[1]}${isActiveCol}">${item[0]}</td>`;
+          } else if (item && c > traceCC) {
+            html += `<td class="stage-${item[1]} stage-dim">${item[0]}</td>`;
+          } else {
+            html += `<td class="${isActiveCol}"></td>`;
+          }
+        }
+        return html + '</tr>';
+      }).join('');
+
+      document.querySelectorAll('#trace-table thead th[data-cc]').forEach(th => {
+        th.classList.toggle('col-active', Number(th.dataset.cc) === traceCC);
+      });
+      document.getElementById('trace-note').innerHTML = traceNotes[traceCC];
+      document.getElementById('tr-prev').disabled = traceCC <= 1;
+      document.getElementById('tr-next').disabled = traceCC >= 11;
+    }
+
+    function stepTrace(delta) {
+      traceCC = Math.max(1, Math.min(11, traceCC + delta));
+      renderTrace();
+    }
+
+    function setTrace(cc) {
+      traceCC = Math.max(1, Math.min(11, cc));
+      renderTrace();
+    }
+
+    renderTrace();
+    updateSlide();
+  </script>
+</body>
+</html>

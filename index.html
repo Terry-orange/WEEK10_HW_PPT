@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>COD 5e 全冊互動教學總網 — Computer Organization and Design (Ch1–Ch6)</title>
+  <style>
+    :root {
+      --bg: #f3f4f6;
+      --bg-elev: #fafbfc;
+      --bg-card: #eff1f4;
+      --bg-card-alt: #e7eaef;
+      --text: #2e343b;
+      --text-muted: #66707c;
+      --text-soft: #8a94a0;
+      --border: #dde1e7;
+      --accent: #c96e43;
+      --accent-soft: rgba(201, 110, 67, 0.13);
+      --accent-strong: #a9552e;
+      --code-bg: #e9ecef;
+      --m-blue: #6b88a2;
+      --m-Blue-bg: rgba(107, 136, 162, 0.14);
+      --m-plum: #8d769a;
+      --m-plum-bg: rgba(141, 118, 154, 0.14);
+      --m-ochre: #b58d3d;
+      --m-ochre-bg: rgba(181, 141, 61, 0.15);
+      --m-sage: #628a73;
+      --m-sage-bg: rgba(98, 138, 115, 0.15);
+      --m-rose: #b26b6b;
+      --m-rose-bg: rgba(178, 107, 107, 0.15);
+      --shadow: 0 2px 10px rgba(46, 52, 59, 0.04);
+      --radius: 10px;
+      --radius-sm: 6px;
+      --font-sans: "Inter", "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+      --font-mono: "JetBrains Mono", "Cascadia Code", "Consolas", monospace;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg: #1b1e22;
+        --bg-elev: #22262b;
+        --bg-card: #292e35;
+        --bg-card-alt: #313740;
+        --text: #d7dce2;
+        --text-muted: #909aa6;
+        --text-soft: #6c7683;
+        --border: #363c45;
+        --accent: #dc865c;
+        --accent-soft: rgba(220, 134, 92, 0.16);
+        --accent-strong: #eb9d76;
+        --code-bg: #181b1f;
+        --m-blue: #89a5bf;
+        --m-Blue-bg: rgba(137, 165, 191, 0.16);
+        --m-plum: #aa94b7;
+        --m-plum-bg: rgba(170, 148, 183, 0.16);
+        --m-ochre: #cfa958;
+        --m-ochre-bg: rgba(207, 169, 88, 0.17);
+        --m-sage: #7fa790;
+        --m-sage-bg: rgba(127, 167, 144, 0.17);
+        --m-rose: #cc8585;
+        --m-rose-bg: rgba(204, 133, 133, 0.17);
+        --shadow: 0 4px 16px rgba(0, 0, 0, 0.22);
+      }
+    }
+
+    :root[data-theme="dark"] {
+      --bg: #1b1e22;
+      --bg-elev: #22262b;
+      --bg-card: #292e35;
+      --bg-card-alt: #313740;
+      --text: #d7dce2;
+      --text-muted: #909aa6;
+      --text-soft: #6c7683;
+      --border: #363c45;
+      --accent: #dc865c;
+      --accent-soft: rgba(220, 134, 92, 0.16);
+      --accent-strong: #eb9d76;
+      --code-bg: #181b1f;
+      --m-blue: #89a5bf;
+      --m-Blue-bg: rgba(137, 165, 191, 0.16);
+      --m-plum: #aa94b7;
+      --m-plum-bg: rgba(170, 148, 183, 0.16);
+      --m-ochre: #cfa958;
+      --m-ochre-bg: rgba(207, 169, 88, 0.17);
+      --m-sage: #7fa790;
+      --m-sage-bg: rgba(127, 167, 144, 0.17);
+      --m-rose: #cc8585;
+      --m-rose-bg: rgba(204, 133, 133, 0.17);
+      --shadow: 0 4px 16px rgba(0, 0, 0, 0.22);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      width: 100%; height: 100%; overflow: hidden;
+      background: var(--bg); color: var(--text);
+      font-family: var(--font-sans); font-size: 15px; line-height: 1.48;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .app { display: flex; flex-direction: column; width: 100vw; height: 100vh; }
+
+    .topbar {
+      height: 50px; padding: 0 14px; gap: 8px;
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--bg-elev); border-bottom: 1px solid var(--border);
+      flex-shrink: 0; z-index: 20;
+    }
+    .brand { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 0.84rem; white-space: nowrap; }
+    .brand-badge {
+      background: var(--accent-soft); color: var(--accent);
+      padding: 3px 9px; border-radius: 5px;
+      font-family: var(--font-mono); font-size: 0.76rem; font-weight: 700;
+    }
+    .nav-tabs { display: flex; align-items: center; gap: 6px; }
+    .tab-btn {
+      background: var(--bg-card); color: var(--text);
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+      padding: 4px 9px; font-size: 0.76rem; font-weight: 600;
+      font-family: var(--font-sans); cursor: pointer;
+      transition: all 0.15s ease; white-space: nowrap;
+    }
+    .tab-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .tab-btn.active { background: var(--accent); color: var(--bg-elev); border-color: var(--accent); }
+
+    .toolbar { display: flex; align-items: center; gap: 8px; }
+    .btn {
+      background: var(--bg-card); color: var(--text);
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+      padding: 4px 9px; font-size: 0.76rem; font-family: var(--font-sans);
+      cursor: pointer; display: inline-flex; align-items: center; gap: 4px;
+      transition: all 0.15s ease; text-decoration: none; white-space: nowrap;
+    }
+    .btn:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-primary {
+      background: var(--accent); color: var(--bg-elev);
+      border-color: var(--accent); font-weight: 600;
+    }
+    .btn-primary:hover { background: var(--accent-strong); color: var(--bg-elev); }
+    .kbd-hint {
+      font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-soft);
+      background: var(--bg); padding: 1px 5px; border-radius: 3px; border: 1px solid var(--border);
+    }
+
+    .workspace {
+      flex: 1; overflow: hidden; padding: 14px 22px;
+      display: flex; justify-content: center;
+    }
+    .view-panel {
+      width: 100%; max-width: 1240px; height: 100%;
+      display: none; flex-direction: column; gap: 12px; overflow: hidden;
+    }
+    .view-panel.active { display: flex; animation: fadeIn 0.18s ease; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(3px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .card {
+      background: var(--bg-elev); border: 1px solid var(--border);
+      border-radius: var(--radius); box-shadow: var(--shadow);
+      padding: 13px 16px;
+    }
+    .card-sub {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 10px 13px;
+    }
+    .card-accent {
+      background: var(--accent-soft); border: 1px solid var(--accent);
+      border-radius: var(--radius-sm); padding: 10px 14px;
+    }
+    .card-title {
+      font-size: 0.88rem; font-weight: 700; color: var(--text);
+      margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    }
+    .pill {
+      font-family: var(--font-mono); font-size: 0.71rem; font-weight: 600;
+      padding: 2px 8px; border-radius: 10px; background: var(--bg-card);
+      color: var(--accent); border: 1px solid var(--border);
+    }
+
+    /* View 1: Theater + Chapter Cards */
+    .theater-layout {
+      flex: 1; display: grid; grid-template-columns: 310px 1fr; gap: 12px; overflow: hidden;
+    }
+    .chapter-list {
+      display: flex; flex-direction: column; gap: 7px; overflow-y: auto; padding-right: 2px;
+    }
+    .chapter-card {
+      background: var(--bg-elev); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 9px 11px;
+      cursor: pointer; transition: all 0.15s ease; text-align: left;
+    }
+    .chapter-card:hover { border-color: var(--accent); }
+    .chapter-card.active {
+      background: var(--accent-soft); border-color: var(--accent);
+    }
+    .ch-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 3px; }
+    .ch-tag { font-family: var(--font-mono); font-size: 0.73rem; font-weight: 700; color: var(--accent); }
+    .ch-meta { font-family: var(--font-mono); font-size: 0.69rem; color: var(--text-muted); }
+    .ch-name { font-size: 0.83rem; font-weight: 700; color: var(--text); line-height: 1.28; }
+    .ch-desc { font-size: 0.74rem; color: var(--text-muted); margin-top: 2px; }
+
+    .player-stage {
+      background: var(--bg-elev); border: 1px solid var(--border);
+      border-radius: var(--radius); display: flex; flex-direction: column; overflow: hidden;
+    }
+    .player-bar {
+      height: 40px; padding: 0 14px;
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--bg-card); border-bottom: 1px solid var(--border); flex-shrink: 0;
+    }
+    .player-frame {
+      flex: 1; width: 100%; border: none; background: var(--bg);
+    }
+
+    /* View 2: DGEMM 4-Chapter Flagship Lab */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 13px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 11px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+
+    .sim-bar { display: flex; flex-wrap: wrap; gap: 6px; }
+    .sim-btn {
+      background: var(--bg-card); color: var(--text); border: 1px solid var(--border);
+      border-radius: 5px; padding: 4px 10px; font-family: var(--font-mono);
+      font-size: 0.76rem; cursor: pointer; transition: all 0.15s ease;
+    }
+    .sim-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .sim-btn.active { background: var(--accent); color: var(--bg-elev); border-color: var(--accent); font-weight: 600; }
+
+    .formula-box {
+      background: var(--code-bg); border-left: 3px solid var(--accent);
+      padding: 8px 12px; border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      font-family: var(--font-mono); font-size: 0.79rem; color: var(--text);
+    }
+
+    table.wiki-table {
+      width: 100%; border-collapse: collapse; font-size: 0.77rem;
+      background: var(--bg-elev); border-radius: var(--radius-sm);
+      overflow: hidden; border: 1px solid var(--border);
+    }
+    table.wiki-table th, table.wiki-table td {
+      padding: 4.5px 8px; text-align: left; border-bottom: 1px solid var(--border);
+    }
+    table.wiki-table th {
+      background: var(--bg-card-alt); font-weight: 600; color: var(--text);
+      font-size: 0.73rem; font-family: var(--font-mono);
+    }
+    table.wiki-table tr:last-child td { border-bottom: none; }
+
+    /* View 3: 41-Page Wiki Explorer */
+    .filter-row {
+      display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+    }
+    .search-input {
+      background: var(--bg-card); color: var(--text); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 5px 11px; font-size: 0.8rem;
+      font-family: var(--font-sans); width: 250px; outline: none;
+    }
+    .search-input:focus { border-color: var(--accent); }
+
+    .wiki-grid {
+      flex: 1; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 9px; overflow-y: auto; padding-right: 4px; align-content: start;
+    }
+    .wiki-card {
+      background: var(--bg-elev); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 10px 12px;
+      display: flex; flex-direction: column; justify-content: space-between; gap: 6px;
+    }
+    .wiki-card:hover { border-color: var(--accent); }
+    .wiki-card-top { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+    .wiki-title { font-size: 0.83rem; font-weight: 700; color: var(--text); line-height: 1.3; }
+    .wiki-summary { font-size: 0.75rem; color: var(--text-muted); line-height: 1.4; }
+    .wiki-links { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-top: 2px; }
+
+    .tag-if { background: var(--m-Blue-bg); color: var(--m-blue); padding: 1px 6px; border-radius: 4px; font-family: var(--font-mono); font-size: 0.71rem; font-weight: 600; }
+    .tag-id { background: var(--m-plum-bg); color: var(--m-plum); padding: 1px 6px; border-radius: 4px; font-family: var(--font-mono); font-size: 0.71rem; font-weight: 600; }
+    .tag-ex { background: var(--m-ochre-bg); color: var(--m-ochre); padding: 1px 6px; border-radius: 4px; font-family: var(--font-mono); font-size: 0.71rem; font-weight: 600; }
+    .tag-mem { background: var(--m-sage-bg); color: var(--m-sage); padding: 1px 6px; border-radius: 4px; font-family: var(--font-mono); font-size: 0.71rem; font-weight: 600; }
+    .tag-wb { background: var(--m-rose-bg); color: var(--m-rose); padding: 1px 6px; border-radius: 4px; font-family: var(--font-mono); font-size: 0.71rem; font-weight: 600; }
+
+    .footer {
+      height: 38px; padding: 0 22px;
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--bg-elev); border-top: 1px solid var(--border);
+      flex-shrink: 0; font-size: 0.76rem; color: var(--text-muted);
+    }
+    code { font-family: var(--font-mono); background: var(--code-bg); padding: 1px 5px; border-radius: 3px; font-size: 0.78rem; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-badge">COD 5e</span>
+        <span>教學總網</span>
+      </div>
+
+      <nav class="nav-tabs" id="navTabs">
+        <button class="tab-btn active" data-view="viewTheater">1. 簡報劇場 (77頁)</button>
+        <button class="tab-btn" data-view="viewDgemm">2. DGEMM 217× 實驗室</button>
+        <button class="tab-btn" data-view="viewWiki">3. Wiki 檢索 (41篇)</button>
+        <button class="tab-btn" data-view="viewSims">4. 16座模擬器 &amp; 公式</button>
+      </nav>
+
+      <div class="toolbar">
+        <button class="btn" id="btnTheme" title="切換深淺色主題 (T)">◐ 主題: <span id="themeLabel">系統</span> <span class="kbd-hint">T</span></button>
+        <button class="btn" id="btnFullscreen" title="全螢幕 (F)">⛶ 全螢幕 <span class="kbd-hint">F</span></button>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <!-- ==================== VIEW 1: CHAPTER SLIDE THEATER ==================== -->
+      <section class="view-panel active" id="viewTheater">
+        <div class="theater-layout">
+          <div class="chapter-list" id="chapterList">
+            <button class="chapter-card active" data-src="cod5e-ch01-computer-abstractions-and-technology.html" data-ch="Ch1 · Computer Abstractions and Technology (10 頁)">
+              <div class="ch-row"><span class="ch-tag">Chapter 01</span><span class="ch-meta">10 Slides · 2 Labs</span></div>
+              <div class="ch-name">Computer Abstractions &amp; Technology</div>
+              <div class="ch-desc">Eight Great Ideas、CPU Iron Law、Power Wall、Amdahl's Law 與 SPEC</div>
+            </button>
+            <button class="chapter-card" data-src="cod5e-ch02-instructions-language-of-the-computer.html" data-ch="Ch2 · Instructions: Language of the Computer (14 頁)">
+              <div class="ch-row"><span class="ch-tag">Chapter 02</span><span class="ch-meta">14 Slides · 3 Labs</span></div>
+              <div class="ch-name">Instructions: Language of the Computer</div>
+              <div class="ch-desc">MIPS 32 暫存器、R/I/J 機器碼、Stack Frame (`fact`)、定址模式與 `ll/sc`</div>
+            </button>
+            <button class="chapter-card" data-src="cod5e-ch03-arithmetic-for-computers.html" data-ch="Ch3 · Arithmetic for Computers (11 頁)">
+              <div class="ch-row"><span class="ch-tag">Chapter 03</span><span class="ch-meta">11 Slides · 2 Labs</span></div>
+              <div class="ch-name">Arithmetic for Computers</div>
+              <div class="ch-desc">ALU 溢位、乘除法器、IEEE 754 (Gradual Underflow / GRS) 與 x86 AVX SIMD</div>
+            </button>
+            <button class="chapter-card" data-src="cod5e-ch04-the-processor.html" data-ch="Ch4 · The Processor (17 頁)">
+              <div class="ch-row"><span class="ch-tag">Chapter 04</span><span class="ch-meta">17 Slides · 4 Labs</span></div>
+              <div class="ch-name">The Processor (Datapath &amp; Pipelining)</div>
+              <div class="ch-desc">Single-Cycle、5-Stage Pipeline、Forwarding、Load-Use、Branch 與 OoO</div>
+            </button>
+            <button class="chapter-card" data-src="cod5e-ch05-exploiting-memory-hierarchy.html" data-ch="Ch5 · Exploiting Memory Hierarchy (14 頁)">
+              <div class="ch-row"><span class="ch-tag">Chapter 05</span><span class="ch-meta">14 Slides · 3 Labs</span></div>
+              <div class="ch-name">Exploiting Memory Hierarchy</div>
+              <div class="ch-desc">SRAM/DRAM、Cache 映射、AMAT、Hamming SEC/DEC、TLB 與 Snooping</div>
+            </button>
+            <button class="chapter-card" data-src="cod5e-ch06-parallel-processors-from-client-to-cloud.html" data-ch="Ch6 · Parallel Processors from Client to Cloud (11 頁)">
+              <div class="ch-row"><span class="ch-tag">Chapter 06</span><span class="ch-meta">11 Slides · 2 Labs</span></div>
+              <div class="ch-name">Parallel Processors: Client to Cloud</div>
+              <div class="ch-desc">Strong/Weak Scaling、Vector `DAXPY`、SMT、SMP/Cluster、GPU 與 Roofline</div>
+            </button>
+          </div>
+
+          <div class="player-stage">
+            <div class="player-bar">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span class="pill">內嵌互動簡報播放器</span>
+                <strong id="currentDeckTitle" style="font-size:0.82rem;">Ch1 · Computer Abstractions and Technology (10 頁)</strong>
+              </div>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <a class="btn btn-primary" id="openFullDeckLink" href="cod5e-ch01-computer-abstractions-and-technology.html">↗ 獨立全視窗開啟本章簡報</a>
+              </div>
+            </div>
+            <iframe class="player-frame" id="deckIframe" src="cod5e-ch01-computer-abstractions-and-technology.html" title="Chapter Slide Deck Player"></iframe>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== VIEW 2: CROSS-CHAPTER DGEMM 217x LAB ==================== -->
+      <section class="view-panel" id="viewDgemm">
+        <div class="card">
+          <div class="card-title">
+            <span>跨章節旗艦實驗室：雙精度矩陣乘法（DGEMM: C = C + A × B）貫穿 Ch3 → Ch4 → Ch5 → Ch6 的 217 倍硬體加速之旅</span>
+            <span class="pill" id="dgemmStageBadge">Stage 5: Ch6 OpenMP 16 Threads (174.0 GFLOPS = 217×)</span>
+          </div>
+          <div class="sim-bar" id="dgemmStageBar">
+            <button class="sim-btn" data-dg="ch3_unopt">1. Ch3 Unoptimized C (0.8 GFLOPS)</button>
+            <button class="sim-btn" data-dg="ch3_avx">2. Ch3 + AVX 256-bit SIMD (2.5 GFLOPS)</button>
+            <button class="sim-btn" data-dg="ch4_unroll">3. Ch4 + 4× Loop Unrolling ILP (5.1 GFLOPS)</button>
+            <button class="sim-btn" data-dg="ch5_block">4. Ch5 + Cache Blocking Tiling (12.0 GFLOPS)</button>
+            <button class="sim-btn active" data-dg="ch6_omp">5. Ch6 + OpenMP 16 Threads (174.0 GFLOPS!)</button>
+          </div>
+        </div>
+
+        <div class="grid-2" style="flex:1; overflow:hidden;">
+          <div class="card" style="display:flex; flex-direction:column; justify-content:space-between;">
+            <div>
+              <div class="card-title"><span>不同矩陣維度（n=32, 160, 480, 960）實測 GFLOPS 階梯圖</span><span class="tag-ex">Dual Xeon / Core i7 3.3GHz</span></div>
+              <div id="dgemmChartBox" style="background:var(--bg-card); border:1px solid var(--border); border-radius:6px; padding:10px; margin-bottom:10px;"></div>
+            </div>
+            <table class="wiki-table">
+              <thead>
+                <tr><th>最佳化階段</th><th>平行維度</th><th>n=32 (L1)</th><th>n=160 (L2)</th><th>n=480 (L3)</th><th>n=960 (DRAM)</th><th>n=960 加速比</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>1. Ch3 Unoptimized C</td><td>Scalar SISD</td><td><code>1.7</code></td><td><code>1.6</code></td><td><code>1.6</code></td><td><strong><code>0.8 GFLOPS</code></strong></td><td><code>1.0×</code></td></tr>
+                <tr><td>2. Ch3 + AVX SIMD</td><td>Subword DLP (4×D)</td><td><code>6.4</code></td><td><code>6.3</code></td><td><code>5.9</code></td><td><strong><code>2.5 GFLOPS</code></strong></td><td><code>3.1×</code></td></tr>
+                <tr><td>3. Ch4 + 4× Unroll</td><td>Superscalar ILP</td><td><strong><code>14.6</code></strong></td><td><code>12.8</code></td><td><code>9.7</code></td><td><strong><code>5.1 GFLOPS</code></strong></td><td><code>6.4×</code></td></tr>
+                <tr><td>4. Ch5 + Blocking</td><td>Cache Locality</td><td><code>14.0</code></td><td><code>13.9</code></td><td><strong><code>13.6</code></strong></td><td><strong><code>12.0 GFLOPS</code></strong></td><td><strong><code>15.0×</code></strong></td></tr>
+                <tr><td><strong>5. Ch6 + OpenMP (16T)</strong></td><td>Multicore TLP</td><td>—</td><td><code>84.0</code></td><td><code>156.0</code></td><td><strong style="color:var(--accent);"><code>174.0 GFLOPS</code></strong></td><td><strong style="color:var(--accent);"><code>217×</code></strong></td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="card" style="display:flex; flex-direction:column; justify-content:space-between;">
+            <div>
+              <div class="card-title"><span>當前階段核心程式碼與硬體瓶頸突破解析</span><span class="pill" id="dgemmChapterLink">Ch6 §6.9</span></div>
+              <div class="formula-box" id="dgemmCodeBox" style="margin-bottom:10px;"></div>
+              <div class="card-accent" id="dgemmExplainBox"></div>
+            </div>
+            <div class="card-sub">
+              <strong>教學核心啟示：</strong>高階語言同一支 O(N<sup>3</sup>) 矩陣乘法，在不改演算法複雜度的前提下，僅透過對齊 <strong>ISA 向量指令 (Ch3) → 亂序超純量管線 (Ch4) → 快取階層局部性 (Ch5) → 多核心執行緒 (Ch6)</strong>，就能創造 <strong>217 倍</strong>的真實硬體效能飛躍！
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== VIEW 3: 41-PAGE WIKI KNOWLEDGE EXPLORER ==================== -->
+      <section class="view-panel" id="viewWiki">
+        <div class="card">
+          <div class="filter-row">
+            <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;" id="wikiChapFilter">
+              <button class="sim-btn active" data-wch="all">全部章節 (41 篇)</button>
+              <button class="sim-btn" data-wch="Ch1">Ch1 (5)</button>
+              <button class="sim-btn" data-wch="Ch2">Ch2 (7)</button>
+              <button class="sim-btn" data-wch="Ch3">Ch3 (5)</button>
+              <button class="sim-btn" data-wch="Ch4">Ch4 (12)</button>
+              <button class="sim-btn" data-wch="Ch5">Ch5 (7)</button>
+              <button class="sim-btn" data-wch="Ch6">Ch6 (5)</button>
+            </div>
+            <input type="text" class="search-input" id="wikiSearchInput" placeholder="搜尋 Wiki 標題、公式、陷阱關鍵字..." />
+          </div>
+        </div>
+
+        <div class="wiki-grid" id="wikiGrid"></div>
+      </section>
+
+      <!-- ==================== VIEW 4: 16 SIMULATORS & MASTER FORMULA SHEET ==================== -->
+      <section class="view-panel" id="viewSims">
+        <div class="grid-2" style="flex:1; overflow:hidden;">
+          <div class="card" style="display:flex; flex-direction:column; overflow:hidden;">
+            <div class="card-title">
+              <span>全冊 16 座互動硬體模擬器快速啟動中心（點擊直接載入該章節實驗室）</span>
+              <span class="pill">16 Interactive Labs</span>
+            </div>
+            <div style="flex:1; overflow-y:auto; display:grid; grid-template-columns:1fr 1fr; gap:7px; padding-right:4px;" id="simHubGrid"></div>
+          </div>
+
+          <div class="card" style="display:flex; flex-direction:column; overflow:hidden;">
+            <div class="card-title">
+              <span>Ch1 – Ch6 核心效能公式與必考黃金定律總表</span>
+              <span class="pill">Master Formula Cheat Sheet</span>
+            </div>
+            <div style="flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:7px; padding-right:4px;">
+              <div class="formula-box">
+                <strong>[Ch1] CPU Performance Iron Law：</strong><br/>
+                CPU Time = Instruction Count (IC) × CPI × T<sub>CC</sub> = (IC × CPI) / (Clock Rate)
+              </div>
+              <div class="formula-box">
+                <strong>[Ch1] CMOS Dynamic Power Wall：</strong><br/>
+                Power ∝ (1) / (2) × Capacitive Load  C × Voltage<sup>2</sup> × Frequency Switched
+              </div>
+              <div class="formula-box">
+                <strong>[Ch1 &amp; Ch6] Amdahl's Law：</strong><br/>
+                T<sub>improved</sub> = (T<sub>affected</sub>) / (Improvement Factor) + T<sub>unaffected</sub> （100 核達 90× 要求 F<sub>serial</sub> ≤ 0.1%）
+              </div>
+              <div class="formula-box">
+                <strong>[Ch2] MIPS Branch vs. Jump Target Addressing：</strong><br/>
+                • Branch (PC-relative)：Target = (PC + 4) + (SignExt(imm16) ≪ 2)<br/>
+                • Jump (Pseudodirect)：Target = (PC+4)[31:28]  ‖  (addr26 ≪ 2)
+              </div>
+              <div class="formula-box">
+                <strong>[Ch3] IEEE 754 Floating-Point &amp; Hamming SEC：</strong><br/>
+                • Normalized：(-1)<sup>S</sup> × (1 + Fraction) × 2<sup>(Exp - Bias)</sup> (Bias: 127 / 1023)<br/>
+                • Denormalized (Exp=0)：(-1)<sup>S</sup> × (0.Fraction) × 2<sup>-126</sup> (Gradual Underflow 2<sup>-149</sup>)
+              </div>
+              <div class="formula-box">
+                <strong>[Ch4] Pipeline Speedup &amp; Hazard Conditions：</strong><br/>
+                • EX/MEM Forwarding：<code>EX/MEM.RegWrite &amp;&amp; Rd != 0 &amp;&amp; Rd == ID/EX.Rs(Rt)</code><br/>
+                • Load-Use Stall：<code>ID/EX.MemRead &amp;&amp; (Rt == IF/ID.Rs || Rt == IF/ID.Rt)</code>
+              </div>
+              <div class="formula-box">
+                <strong>[Ch5] Cache AMAT, Multilevel CPI &amp; Availability：</strong><br/>
+                • AMAT = Hit Time + Miss Rate × Miss Penalty<br/>
+                • Total Bits = 2<sup>n</sup> × (Block Data Bits + Tag Bits + Valid + Dirty)<br/>
+                • Availability = (MTTF) / (MTTF + MTTR)；Hamming SEC：2<sup>p</sup> ≥ d + p + 1
+              </div>
+              <div class="formula-box">
+                <strong>[Ch6] Roofline Performance Model &amp; Network Bisection：</strong><br/>
+                • Attainable GFLOP/s = min(Peak Mem BW × AI,  Peak FP GFLOP/s)<br/>
+                • Bisection Bandwidth：Ring = 2, 2D Mesh = √(N), Torus = 2√(N), n-Cube = N/2
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div><strong>Computer Organization and Design (5th Ed., Patterson &amp; Hennessy)</strong> · 41 篇結構化 Wiki + 6 套章節簡報 (77 頁) + 16 座互動硬體模擬器</div>
+      <div>快捷鍵：<span class="kbd-hint">1</span>–<span class="kbd-hint">4</span> 切換上方四大視角 · <span class="kbd-hint">T</span> 切換深淺色主題 · <span class="kbd-hint">F</span> 全螢幕</div>
+    </footer>
+  </div>
+
+  <script>
+    (function () {
+      // View Tab Switching
+      const tabBtns = Array.from(document.querySelectorAll('.tab-btn'));
+      const views = Array.from(document.querySelectorAll('.view-panel'));
+
+      function switchView(viewId) {
+        tabBtns.forEach(b => b.classList.toggle('active', b.dataset.view === viewId));
+        views.forEach(v => v.classList.toggle('active', v.id === viewId));
+      }
+
+      tabBtns.forEach(btn => {
+        btn.addEventListener('click', () => switchView(btn.dataset.view));
+      });
+
+      // Theme handling (System -> Light -> Dark)
+      const root = document.documentElement;
+      const themeLabel = document.getElementById('themeLabel');
+      const modes = ['system', 'light', 'dark'];
+      const modeNames = { system: '系統', light: '淺色', dark: '深色' };
+      let modeIdx = 0;
+
+      function applyTheme(mode) {
+        if (mode === 'system') root.removeAttribute('data-theme');
+        else root.setAttribute('data-theme', mode);
+        themeLabel.textContent = modeNames[mode];
+      }
+
+      document.getElementById('btnTheme').addEventListener('click', () => {
+        modeIdx = (modeIdx + 1) % modes.length;
+        applyTheme(modes[modeIdx]);
+      });
+
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+        if (modes[modeIdx] === 'system') applyTheme('system');
+      });
+
+      document.getElementById('btnFullscreen').addEventListener('click', () => {
+        if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});
+        else document.exitFullscreen().catch(() => {});
+      });
+
+      window.addEventListener('keydown', (e) => {
+        if (document.activeElement && document.activeElement.tagName === 'INPUT') return;
+        if (e.key === '1') switchView('viewTheater');
+        else if (e.key === '2') switchView('viewDgemm');
+        else if (e.key === '3') switchView('viewWiki');
+        else if (e.key === '4') switchView('viewSims');
+        else if (e.key === 't' || e.key === 'T') {
+          modeIdx = (modeIdx + 1) % modes.length; applyTheme(modes[modeIdx]);
+        } else if (e.key === 'f' || e.key === 'F') {
+          document.getElementById('btnFullscreen').click();
+        }
+      });
+
+      // View 1: Chapter Deck Switcher
+      const chapterCards = Array.from(document.querySelectorAll('.chapter-card'));
+      const deckIframe = document.getElementById('deckIframe');
+      const currentDeckTitle = document.getElementById('currentDeckTitle');
+      const openFullDeckLink = document.getElementById('openFullDeckLink');
+
+      function loadChapterDeck(src, title) {
+        chapterCards.forEach(c => c.classList.toggle('active', c.dataset.src === src));
+        deckIframe.src = src;
+        currentDeckTitle.textContent = title;
+        openFullDeckLink.href = src;
+      }
+
+      chapterCards.forEach(card => {
+        card.addEventListener('click', () => {
+          loadChapterDeck(card.dataset.src, card.dataset.ch);
+        });
+      });
+
+      // View 2: Cross-Chapter DGEMM 217x Interactive Lab
+      const dgemmStages = {
+        ch3_unopt: {
+          badge: 'Stage 1: Ch3 Unoptimized C (0.8 GFLOPS at n=960)',
+          ch: 'Ch3 §3.5 / §3.7',
+          vals: [1.7, 1.6, 1.6, 0.8],
+          code: '<code>for (int i = 0; i &lt; n; ++i)</code><br/>' +
+                '<code>&nbsp;&nbsp;for (int j = 0; j &lt; n; ++j) {</code><br/>' +
+                '<code>&nbsp;&nbsp;&nbsp;&nbsp;double cij = C[i+j*n];</code><br/>' +
+                '<code>&nbsp;&nbsp;&nbsp;&nbsp;for (int k = 0; k &lt; n; k++) cij += A[i+k*n] * B[k+j*n];</code><br/>' +
+                '<code>&nbsp;&nbsp;&nbsp;&nbsp;C[i+j*n] = cij;</code><br/>' +
+                '<code>&nbsp;&nbsp;}</code>',
+          explain: '<strong>瓶頸診斷（Scalar SISD）：</strong>編譯器僅產生單筆 64-bit Scalar SSE2 指令（<code>vmovsd / vmulsd / vaddsd</code>），浪費了 256-bit YMM 暫存器 75% 的運算通道；且當 n=960 時頻繁發生 Cache Capacity Misses，效能跌至僅 <strong><code>0.8 GFLOPS</code></strong>。'
+        },
+        ch3_avx: {
+          badge: 'Stage 2: Ch3 + AVX 256-bit SIMD (6.4 GFLOPS at n=32)',
+          ch: 'Ch3 §3.7 – §3.8',
+          vals: [6.4, 6.3, 5.9, 2.5],
+          code: '<code>for (int i = 0; i &lt; n; i += 4) {</code><br/>' +
+                '<code>&nbsp;&nbsp;__m256d c0 = _mm256_load_pd(C+i+j*n); // 一次載入 4 個 Doubles</code><br/>' +
+                '<code>&nbsp;&nbsp;for (int k = 0; k &lt; n; k++)</code><br/>' +
+                '<code>&nbsp;&nbsp;&nbsp;&nbsp;c0 = _mm256_add_pd(c0, _mm256_mul_pd(_mm256_load_pd(A+i+k*n), _mm256_broadcast_sd(B+k+j*n)));</code><br/>' +
+                '<code>&nbsp;&nbsp;_mm256_store_pd(C+i+j*n, c0);</code><br/>' +
+                '<code>}</code>',
+          explain: '<strong>突破 1（Data-Level Parallelism / Subword SIMD）：</strong>啟用 256-bit AVX YMM 向量指令（<code>vmovapd / vbroadcastsd / vmulpd / vaddpd</code>），每條指令同時算 4 個 Doubles！在 n=32 獲得 <strong>3.85× 加速（<code>6.4 GFLOPS</code>）</strong>。'
+        },
+        ch4_unroll: {
+          badge: 'Stage 3: Ch4 + 4× Loop Unrolling ILP (14.6 GFLOPS at n=32)',
+          ch: 'Ch4 §4.11',
+          vals: [14.6, 12.8, 9.7, 5.1],
+          code: '<code>__m256d c[4]; // 展開 4 組 256-bit YMM 累加器 (一次算 16 個 Doubles)</code><br/>' +
+                '<code>for (int x = 0; x &lt; 4; x++) c[x] = _mm256_load_pd(C+i+x*4+j*n);</code><br/>' +
+                '<code>for (int k = 0; k &lt; n; k++) {</code><br/>' +
+                '<code>&nbsp;&nbsp;__m256d b = _mm256_broadcast_sd(B+k+j*n);</code><br/>' +
+                '<code>&nbsp;&nbsp;for (int x = 0; x &lt; 4; x++) c[x] = _mm256_add_pd(c[x], _mm256_mul_pd(_mm256_load_pd(A+i+4*x+k*n), b));</code><br/>' +
+                '<code>}</code>',
+          explain: '<strong>突破 2（Instruction-Level Parallelism / Out-of-Order Pipeline）：</strong>將迴圈展開 4 倍並使用 4 個獨立 YMM 累加器，徹底填滿 Core i7 亂序超純量管線的浮點乘加延遲氣泡，在 n=32 衝上 <strong><code>14.6 GFLOPS</code></strong>！但 n=960 時仍因 Cache Miss 掉回 <code>5.1 GFLOPS</code>。'
+        },
+        ch5_block: {
+          badge: 'Stage 4: Ch5 + Cache Blocking Tiling (12.0 GFLOPS at n=960)',
+          ch: 'Ch5 §5.7 / §5.13',
+          vals: [14.0, 13.9, 13.6, 12.0],
+          code: '<code>#define BLOCKSIZE 32</code><br/>' +
+                '<code>for (int sj = 0; sj &lt; n; sj += BLOCKSIZE)</code><br/>' +
+                '<code>&nbsp;&nbsp;for (int si = 0; si &lt; n; si += BLOCKSIZE)</code><br/>' +
+                '<code>&nbsp;&nbsp;&nbsp;&nbsp;for (int sk = 0; sk &lt; n; sk += BLOCKSIZE)</code><br/>' +
+                '<code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;do_block(n, si, sj, sk, A, B, C); // 32×32 子矩陣常駐 L1 D-Cache</code>',
+          explain: '<strong>突破 3（Memory Hierarchy Temporal &amp; Spatial Locality）：</strong>將大矩陣切為 <code>32 × 32</code> 子區塊鎖在 32KB L1 Cache 中重複運算，消除 Capacity Misses！使 n=960 大矩陣效能從 <code>5.1</code> 暴漲至 <strong><code>12.0 GFLOPS</code>（較未最佳化快 15 倍）</strong>！'
+        },
+        ch6_omp: {
+          badge: 'Stage 5: Ch6 + OpenMP 16 Threads (174.0 GFLOPS = 217× Speedup!)',
+          ch: 'Ch6 §6.9',
+          vals: [14.0, 84.0, 156.0, 174.0],
+          code: '<code><strong style="color:var(--accent);">#pragma omp parallel for</strong></code><br/>' +
+                '<code>for (int sj = 0; sj &lt; n; sj += BLOCKSIZE)</code><br/>' +
+                '<code>&nbsp;&nbsp;for (int si = 0; si &lt; n; si += BLOCKSIZE)</code><br/>' +
+                '<code>&nbsp;&nbsp;&nbsp;&nbsp;for (int sk = 0; sk &lt; n; sk += BLOCKSIZE)</code><br/>' +
+                '<code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;do_block(n, si, sj, sk, A, B, C); // 16 執行緒平行處理不同 Column Blocks</code>',
+          explain: '<strong>突破 4（Thread-Level Parallelism / Multicore MIMD）：</strong>僅在最外層加入一行 <code>#pragma omp parallel for</code>，將不相交的 Column Blocks 分派給雙路 Xeon 的 16 個硬體執行緒，在 n=960 衝出驚人的 <strong><code>174.0 GFLOPS</code>（總加速達 <code>217×</code>）</strong>！'
+        }
+      };
+
+      function renderDgemm(key) {
+        const d = dgemmStages[key];
+        document.getElementById('dgemmStageBadge').textContent = d.badge;
+        document.getElementById('dgemmChapterLink').textContent = d.ch;
+        document.getElementById('dgemmCodeBox').innerHTML = d.code;
+        document.getElementById('dgemmExplainBox').innerHTML = d.explain;
+
+        const dims = ['n = 32 (L1)', 'n = 160 (L2)', 'n = 480 (L3)', 'n = 960 (DRAM)'];
+        const maxVal = 180;
+        let barsSvg = '';
+        d.vals.forEach((v, i) => {
+          const y = 14 + i * 28;
+          const w = Math.max(8, (v / maxVal) * 305);
+          barsSvg += '<text x="8" y="' + (y + 14) + '" fill="var(--text)" font-size="10.5" font-weight="600" font-family="var(--font-mono)">' + dims[i] + '</text>';
+          barsSvg += '<rect x="112" y="' + y + '" width="' + w.toFixed(1) + '" height="19" rx="4" fill="var(--accent)"/>';
+          barsSvg += '<text x="' + (118 + w).toFixed(1) + '" y="' + (y + 14) + '" fill="var(--accent)" font-size="10.5" font-weight="700" font-family="var(--font-mono)">' + v.toFixed(1) + ' GFLOPS</text>';
+        });
+        document.getElementById('dgemmChartBox').innerHTML =
+          '<svg viewBox="0 0 500 124" aria-label="DGEMM GFLOPS Chart">' + barsSvg + '</svg>';
+      }
+
+      renderDgemm('ch6_omp');
+      const dgemmStageBar = document.getElementById('dgemmStageBar');
+      dgemmStageBar.querySelectorAll('.sim-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          dgemmStageBar.querySelectorAll('.sim-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          renderDgemm(btn.dataset.dg);
+        });
+      });
+
+      // View 3: 41-Page Wiki Catalog Data
+      const wikiPages = [
+        // Ch1 (5)
+        { ch: 'Ch1', cat: 'sources', title: 'Ch1 教材摘要：Computer Abstractions and Technology', path: '../wiki/sources/cod5e-ch01-computer-abstractions-and-technology.md', deck: 'cod5e-ch01-computer-abstractions-and-technology.html', desc: '五大電腦類別、系統軟體層次、Eight Great Ideas、矽晶圓良率與全章總覽。' },
+        { ch: 'Ch1', cat: 'concepts', title: '電腦抽象層、Eight Great Ideas 與 IC 晶圓成本', path: '../wiki/concepts/computer-abstractions-and-eight-great-ideas.md', deck: 'cod5e-ch01-computer-abstractions-and-technology.html', desc: 'ムーア定律等八大偉大設計理念、液晶螢幕像素陣列與矽晶圓 Dies per Wafer / Yield 公式。' },
+        { ch: 'Ch1', cat: 'formulas', title: 'CPU 效能鐵律 (Iron Law) 與 Power Wall 功耗牆', path: '../wiki/formulas/cpu-performance-iron-law-and-power-wall.md', deck: 'cod5e-ch01-computer-abstractions-and-technology.html', desc: 'Response Time vs Throughput、CPU Time = IC × CPI × Tcc、加權平均 CPI 與 CMOS 動態功耗降壓減半實算。' },
+        { ch: 'Ch1', cat: 'concepts', title: '多核心轉向 (Multiprocessor Shift) 與 SPEC 基準測試', path: '../wiki/concepts/multiprocessor-shift-and-spec-benchmarks.md', deck: 'cod5e-ch01-computer-abstractions-and-technology.html', desc: '為何從單核衝時脈轉向多核心、Intel Core i7 920 SPEC CPU2006 幾何平均與 SPECpower 功耗效率。' },
+        { ch: 'Ch1', cat: 'exercises', title: 'Ch1 綜合題型與陷阱：Amdahl\'s Law 與 MIPS 迷思', path: '../wiki/exercises/ch01-performance-amdahl-and-mips-traps.md', deck: 'cod5e-ch01-computer-abstractions-and-technology.html', desc: 'Amdahl 定律推導、Make the Common Case Fast、以及為何不可用 MIPS 指標跨架構比較效能。' },
+        // Ch2 (7)
+        { ch: 'Ch2', cat: 'sources', title: 'Ch2 教材摘要：Instructions: Language of the Computer', path: '../wiki/sources/cod5e-ch02-instructions-language-of-the-computer.md', deck: 'cod5e-ch02-instructions-language-of-the-computer.html', desc: 'MIPS 指令集四大設計原則、暫存器、R/I/J 格式、Stack Frame、編譯連結鏈與 ARM/x86 對照總覽。' },
+        { ch: 'Ch2', cat: 'isa', title: 'MIPS 32 個暫存器、Big-Endian 記憶體與二補數表示法', path: '../wiki/isa/mips-registers-memory-and-number-representations.md', deck: 'cod5e-ch02-instructions-language-of-the-computer.html', desc: '32 個暫存器配置表、Byte Addressing Alignment 限制、2\'s Complement 有號無號擴充與邏輯移位。' },
+        { ch: 'Ch2', cat: 'isa', title: 'MIPS R / I / J 三大指令格式與五種定址模式', path: '../wiki/isa/mips-instruction-formats-and-addressing-modes.md', deck: 'cod5e-ch02-instructions-language-of-the-computer.html', desc: 'op/rs/rt/rd/shamt/funct 欄位位元圖、A[300] 機器碼組譯、32-bit 常數 lui+ori 與五種定址模式解碼。' },
+        { ch: 'Ch2', cat: 'isa', title: 'MIPS 條件分支、Procedure Call 與 Stack Frame (fact)', path: '../wiki/isa/mips-control-flow-and-procedures-stack-frame.md', deck: 'cod5e-ch02-instructions-language-of-the-computer.html', desc: 'beq/bne/slt、jal/jr、Caller vs Callee-saved 規約、leaf_example、遞迴 fact(n) 與字串 strcpy。' },
+        { ch: 'Ch2', cat: 'concepts', title: 'C 編譯組譯連結載入、Java JIT 與 ll / sc 原生同步', path: '../wiki/concepts/program-translation-linking-and-synchronization.md', deck: 'cod5e-ch02-instructions-language-of-the-computer.html', desc: 'Compiler → Assembler → Linker → Loader 四階段、C Swap 陣列指標最佳化與 Load Linked / Store Conditional。' },
+        { ch: 'Ch2', cat: 'comparisons', title: 'MIPS vs. ARMv7 vs. Intel x86 指令集架構橫向比較', path: '../wiki/comparisons/mips-vs-arm-and-x86-isa.md', deck: 'cod5e-ch02-instructions-language-of-the-computer.html', desc: '固定 32-bit RISC vs 1~15 Bytes 變長 x86 CISC 編碼演進，以及為何「更強大的指令」反而可能拖慢系統。' },
+        { ch: 'Ch2', cat: 'exercises', title: 'Ch2 綜合題型與陷阱：Stack 指標、Byte 定址與分支偏移', path: '../wiki/exercises/ch02-isa-stack-and-addressing-traps.md', deck: 'cod5e-ch02-instructions-language-of-the-computer.html', desc: '區域變數指標 Dangling Pointer 陷阱、Word Offset *4、Sign/Zero Extension 與遠距離分支改寫。' },
+        // Ch3 (5)
+        { ch: 'Ch3', cat: 'sources', title: 'Ch3 教材摘要：Arithmetic for Computers', path: '../wiki/sources/cod5e-ch03-arithmetic-for-computers.md', deck: 'cod5e-ch03-arithmetic-for-computers.html', desc: '整數加減溢位、三代乘法器、恢復餘數除法器、IEEE 754 浮點數與 x86 AVX Subword Parallelism 總覽。' },
+        { ch: 'Ch3', cat: 'datapaths', title: '整數 ALU 加減溢位、三代乘法器與兩代除法器硬體', path: '../wiki/datapaths/integer-alu-multiplication-and-division.md', deck: 'cod5e-ch03-arithmetic-for-computers.html', desc: 'Signed Overflow 真值表、Saturating Arithmetic、64-bit → 32-bit → 31-Adder Tree 乘法器與 Restoring Division。' },
+        { ch: 'Ch3', cat: 'concepts', title: 'IEEE 754 浮點數標準、Gradual Underflow 與浮點加乘硬體', path: '../wiki/concepts/ieee-754-floating-point-and-hardware.md', deck: 'cod5e-ch03-arithmetic-for-computers.html', desc: 'Single/Double Bias 127/1023、五大特殊區間、Denorm 三問、4 步 FP Adder、5 步 FP Multiplier 與 G/R/S ulp。' },
+        { ch: 'Ch3', cat: 'isa', title: 'MIPS 浮點指令集 (CP1)、Subword SIMD 與 x86 AVX DGEMM', path: '../wiki/isa/mips-floating-point-and-x86-simd-avx.md', deck: 'cod5e-ch03-arithmetic-for-computers.html', desc: 'f0–f31、f2c 與 mm 組譯、128-bit 進位鏈切分、x86 8087 → SSE2 → 256-bit AVX YMM 3.85× 加速。' },
+        { ch: 'Ch3', cat: 'exercises', title: 'Ch3 綜合題型與陷阱：負數算術右移、浮點結合律與 FDIV Bug', path: '../wiki/exercises/ch03-arithmetic-and-floating-point-traps.md', deck: 'cod5e-ch03-arithmetic-for-computers.html', desc: '為何 -5 >> 2 != -5 / 4、浮點數加法不具結合律 (Absorption)、以及 1994 Intel Pentium FDIV 召回事件。' },
+        // Ch4 (12)
+        { ch: 'Ch4', cat: 'sources', title: 'Ch4 教材摘要：The Processor (Single-Cycle to Superscalar)', path: '../wiki/sources/cod5e-ch04-the-processor.md', deck: 'cod5e-ch04-the-processor.html', desc: 'Single-Cycle 與 5-Stage Pipelined Datapath、Forwarding、Load-Use、Branch Prediction、Exception 與 ILP 總覽。' },
+        { ch: 'Ch4', cat: 'datapaths', title: 'MIPS Single-Cycle Datapath 與兩階 ALU 控制真值表', path: '../wiki/datapaths/mips-single-cycle-datapath.md', deck: 'cod5e-ch04-the-processor.html', desc: 'R-type / lw / sw / beq / j 單週期資料路徑合成、7 大主控制訊號與 ALUOp 兩階解碼真值表。' },
+        { ch: 'Ch4', cat: 'concepts', title: 'Pipelining 管線化核心原理與三大危障 (Hazards) 分類', path: '../wiki/concepts/pipelining-overview.md', deck: 'cod5e-ch04-the-processor.html', desc: '洗衣房類比、800ps vs 200ps 單週期與五階段管線時序比較、Structural / Data / Control Hazards 定義。' },
+        { ch: 'Ch4', cat: 'formulas', title: 'Pipeline Speedup 加速比推導與 CPI / IPC 效能公式', path: '../wiki/formulas/pipeline-speedup-and-ipc.md', deck: 'cod5e-ch04-the-processor.html', desc: '理想加速比等於管線級數 k 之條件、Stage 不平衡與 Stall Cycles 對實際 CPI 的影響計算。' },
+        { ch: 'Ch4', cat: 'datapaths', title: 'MIPS 5-Stage Pipelined Datapath 與四座管線暫存器', path: '../wiki/datapaths/mips-pipelined-datapath-and-control.md', deck: 'cod5e-ch04-the-processor.html', desc: 'IF/ID、ID/EX、EX/MEM、MEM/WB 管線暫存器傳遞控制訊號與 Write Register 編號回傳修正。' },
+        { ch: 'Ch4', cat: 'datapaths', title: 'Data Hazards: Forwarding Unit 旁路條件與 Load-Use Stall', path: '../wiki/datapaths/forwarding-and-hazard-detection.md', deck: 'cod5e-ch04-the-processor.html', desc: 'EX Hazard 與 MEM Hazard (Double Data Hazard 優先權) 布林條件式、Hazard Detection Unit 插入 Bubble。' },
+        { ch: 'Ch4', cat: 'concepts', title: 'Control Hazards 與動態分支預測 (1-Bit / 2-Bit / BTB)', path: '../wiki/concepts/branch-prediction-and-control-hazards.md', deck: 'cod5e-ch04-the-processor.html', desc: '將 beq 提前至 ID 階段、ID Flush、1-Bit vs 2-Bit Saturating Counter 狀態機、Correlating 與 Tournament Predictor。' },
+        { ch: 'Ch4', cat: 'concepts', title: 'Exceptions 與 Interrupts 硬體管線處理機制 (EPC & Cause)', path: '../wiki/concepts/exceptions-and-interrupts.md', deck: 'cod5e-ch04-the-processor.html', desc: '算術溢位與未定義指令觸發時如何 Flush IF/ID/EX、記錄 EPC 與 Cause 並跳至 8000 0180_hex，以及 Precise Exceptions。' },
+        { ch: 'Ch4', cat: 'concepts', title: 'Instruction-Level Parallelism (ILP)、Loop Unrolling 與 OoO', path: '../wiki/concepts/instruction-level-parallelism.md', deck: 'cod5e-ch04-the-processor.html', desc: '管線深度與幅度擴展、Speculation、Loop Unrolling + Register Renaming、以及亂序執行 (Reservation Station + Commit)。' },
+        { ch: 'Ch4', cat: 'comparisons', title: 'Static vs. Dynamic Multiple-Issue (VLIW vs. Superscalar)', path: '../wiki/comparisons/static-vs-dynamic-multiple-issue.md', deck: 'cod5e-ch04-the-processor.html', desc: '2-Issue Static MIPS 封包排程（含 Loop Unrolling CPI 0.78）對比 Dynamic Out-of-Order Superscalar 架構。' },
+        { ch: 'Ch4', cat: 'comparisons', title: 'ARM Cortex-A8 vs. Intel Core i7 920 微架構深度比較', path: '../wiki/comparisons/arm-cortex-a8-vs-intel-core-i7.md', deck: 'cod5e-ch04-the-processor.html', desc: '雙發射 In-Order 13-stage Cortex-A8 vs 四發射 Out-of-Order 14-stage Core i7，以及 Ch4 AVX+Unroll DGEMM。' },
+        { ch: 'Ch4', cat: 'exercises', title: 'Ch4 綜合題型與陷阱：Pipeline Hazards、排程與四大迷思', path: '../wiki/exercises/ch04-pipeline-hazards-and-scheduling-traps.md', deck: 'cod5e-ch04-the-processor.html', desc: 'Double Data Hazard 條件陷阱、Load-Use 重排消除 Stall 演練與 §4.13 管線化迷思解析。' },
+        // Ch5 (7)
+        { ch: 'Ch5', cat: 'sources', title: 'Ch5 教材摘要：Exploiting Memory Hierarchy', path: '../wiki/sources/cod5e-ch05-exploiting-memory-hierarchy.md', deck: 'cod5e-ch05-exploiting-memory-hierarchy.html', desc: 'Locality、SRAM/DRAM/Flash/Disk、Cache Mapping、AMAT、Hamming ECC、VM/TLB 與 Snooping Coherence 總覽。' },
+        { ch: 'Ch5', cat: 'concepts', title: '局部性原理與四大記憶體技術 (SRAM / DRAM / Flash / Disk)', path: '../wiki/concepts/memory-hierarchy-technologies-and-storage.md', deck: 'cod5e-ch05-exploiting-memory-hierarchy.html', desc: 'Temporal/Spatial Locality、2012 四大技術延遲與成本表、DRAM Row Buffer / DDR / 4-Bank Interleaving (65/17/20 cycles)。' },
+        { ch: 'Ch5', cat: 'concepts', title: 'Cache 映射 (Direct / Set-Assoc / Full)、寫入策略與 3Cs 模型', path: '../wiki/concepts/cache-mapping-policies-and-multilevel-caches.md', deck: 'cod5e-ch05-exploiting-memory-hierarchy.html', desc: 'Tag|Index|Offset、FastMATH 16KB Cache、Write-Through vs Write-Back、3Cs Miss 模型與 Quicksort vs Radix / DGEMM Blocking。' },
+        { ch: 'Ch5', cat: 'formulas', title: 'Memory Stall CPI、AMAT、多階 L1+L2、磁碟與 Hamming ECC 公式', path: '../wiki/formulas/cache-amat-disk-and-dependability-formulas.md', deck: 'cod5e-ch05-exploiting-memory-hierarchy.html', desc: 'CPI 5.44 推導、AMAT 2.0ns、L1+L2 CPI 9.0→3.4 (2.6×)、磁碟 6.2ms、MTTF/MTTR Availability 與 Hamming SEC/DEC 編碼。' },
+        { ch: 'Ch5', cat: 'concepts', title: 'Virtual Machines (VMM)、Virtual Memory 分頁表與 TLB 轉址', path: '../wiki/concepts/virtual-machines-virtual-memory-and-tlb.md', deck: 'cod5e-ch05-exploiting-memory-hierarchy.html', desc: 'Trap-and-Emulate 虛擬化、4KB Page Table、Page Fault 三大設計鐵律、TLB×PageTable×Cache 真值表與 VIPT Aliasing。' },
+        { ch: 'Ch5', cat: 'datapaths', title: 'Simple Cache Controller 4-State FSM 與 Snooping Coherence', path: '../wiki/datapaths/cache-controller-fsm-and-cache-coherence.md', deck: 'cod5e-ch05-exploiting-memory-hierarchy.html', desc: 'Idle → Compare Tag → Write-Back → Allocate 有限狀態機、Coherence vs Consistency、Write-Invalidate Snooping 與 False Sharing。' },
+        { ch: 'Ch5', cat: 'exercises', title: 'Ch5 綜合比較與陷阱：Cortex-A8 vs. Core i7、Blocked DGEMM 與六大迷思', path: '../wiki/exercises/ch05-memory-hierarchy-and-cortex-i7-comparison.md', deck: 'cod5e-ch05-exploiting-memory-hierarchy.html', desc: 'Cortex-A8 vs Core i7 快取與 TLB 規格、Blocked AVX DGEMM 12.0 GFLOPS、以及 §5.15 六大經典記憶體陷阱。' },
+        // Ch6 (5)
+        { ch: 'Ch6', cat: 'sources', title: 'Ch6 教材摘要：Parallel Processors from Client to Cloud', path: '../wiki/sources/cod5e-ch06-parallel-processors-from-client-to-cloud.md', deck: 'cod5e-ch06-parallel-processors-from-client-to-cloud.html', desc: '平行化挑戰、Strong/Weak Scaling、Flynn\'s、Vector、SMT、SMP/Cluster、Network Topologies、GPU 與 Roofline 總覽。' },
+        { ch: 'Ch6', cat: 'concepts', title: '平行程式設計挑戰、Strong vs. Weak Scaling、Flynn\'s 與 Vector 處理器', path: '../wiki/concepts/parallel-programming-scaling-and-flynn-taxonomy.md', deck: 'cod5e-ch06-parallel-processors-from-client-to-cloud.html', desc: '100 核 Speedup 90 要求 0.1% 循序比例、Strong vs Weak Scaling 矩陣加總、Flynn 四象限與 VMIPS Vector DAXPY (6 vs 578 指令)。' },
+        { ch: 'Ch6', cat: 'concepts', title: 'Hardware Multithreading (Coarse/Fine/SMT)、SMP (UMA/NUMA) 與互連拓撲', path: '../wiki/concepts/hardware-multithreading-smp-and-message-passing.md', deck: 'cod5e-ch06-parallel-processors-from-client-to-cloud.html', desc: 'Coarse/Fine/SMT 時序、SMP vs Message Passing 100 核 Tree Reduction、以及 Ring/Mesh/Torus/Hypercube Bisection Bandwidth。' },
+        { ch: 'Ch6', cat: 'architectures', title: 'NVIDIA GPU 架構 (Multithreaded SIMD Processor) 與 CUDA 術語對照', path: '../wiki/architectures/gpu-architecture-and-nvidia-tesla.md', deck: 'cod5e-ch06-parallel-processors-from-client-to-cloud.html', desc: 'Streaming Multiprocessor (SM)、32-Thread Warp、3 層 GPU 記憶體、Multicore+SIMD vs GPU 11 項對比與 Table 6.2 CUDA 術語翻譯。' },
+        { ch: 'Ch6', cat: 'formulas', title: 'Roofline Performance Model、Core i7 vs. Tesla 實測與 OpenMP DGEMM 174 GFLOPS', path: '../wiki/formulas/roofline-model-and-parallel-benchmarks.md', deck: 'cod5e-ch06-parallel-processors-from-client-to-cloud.html', desc: 'Arithmetic Intensity 斜屋頂與平屋頂公式、Core i7-960 vs GTX 280/480 實測、OpenMP 16 核 217× DGEMM 與 §6.13 三大迷思。' }
+      ];
+
+      let currentWCh = 'all';
+      let currentQuery = '';
+
+      function renderWikiCatalog() {
+        const grid = document.getElementById('wikiGrid');
+        grid.innerHTML = '';
+        const q = currentQuery.trim().toLowerCase();
+        const filtered = wikiPages.filter(p => {
+          const matchCh = currentWCh === 'all' || p.ch === currentWCh;
+          const matchQ = !q || p.title.toLowerCase().includes(q) || p.desc.toLowerCase().includes(q) || p.cat.toLowerCase().includes(q);
+          return matchCh && matchQ;
+        });
+
+        filtered.forEach(p => {
+          const card = document.createElement('div');
+          card.className = 'wiki-card';
+          card.innerHTML =
+            '<div>' +
+              '<div class="wiki-card-top"><span class="tag-if">' + p.ch + '</span><span class="pill">' + p.cat + '</span></div>' +
+              '<div class="wiki-title" style="margin-top:4px;">' + p.title + '</div>' +
+              '<div class="wiki-summary" style="margin-top:3px;">' + p.desc + '</div>' +
+            '</div>' +
+            '<div class="wiki-links">' +
+              '<span class="muted" style="font-family:var(--font-mono); font-size:0.71rem;">' + p.ch + ' · ' + p.cat + '</span>' +
+              '<button class="btn btn-primary btn-open-deck" data-deck="' + p.deck + '" data-ch="' + p.ch + '">▶ 播放本章簡報</button>' +
+            '</div>';
+          grid.appendChild(card);
+        });
+
+        grid.querySelectorAll('.btn-open-deck').forEach(btn => {
+          btn.addEventListener('click', () => {
+            switchView('viewTheater');
+            const targetCard = chapterCards.find(c => c.dataset.src === btn.dataset.deck);
+            if (targetCard) targetCard.click();
+          });
+        });
+      }
+
+      renderWikiCatalog();
+
+      document.getElementById('wikiChapFilter').querySelectorAll('.sim-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.getElementById('wikiChapFilter').querySelectorAll('.sim-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          currentWCh = btn.dataset.wch;
+          renderWikiCatalog();
+        });
+      });
+
+      document.getElementById('wikiSearchInput').addEventListener('input', (e) => {
+        currentQuery = e.target.value;
+        renderWikiCatalog();
+      });
+
+      // View 4: 16 Interactive Simulators Hub
+      const simList = [
+        { ch: 'Ch1 · Slide 05', name: '1. CPU Performance Iron Law 比較模擬器', desc: 'Computer A vs B & Sequence 1 vs 2 加權 CPI', deck: 'cod5e-ch01-computer-abstractions-and-technology.html' },
+        { ch: 'Ch1 · Slide 08', name: '2. Amdahl\'s Law 極限與多核加速模擬器', desc: '80s 乘法佔 100s 要加速多少倍？為什麼 5× 不可能？', deck: 'cod5e-ch01-computer-abstractions-and-technology.html' },
+        { ch: 'Ch2 · Slide 05', name: '3. MIPS R / I / J 機器碼雙向解碼器', desc: 'add / lw A[300] / beq / j 欄位位元與十進位對照', deck: 'cod5e-ch02-instructions-language-of-the-computer.html' },
+        { ch: 'Ch2 · Slide 08', name: '4. 遞迴 fact(n) Stack Frame 壓棧彈棧模擬器', desc: 'sp - 8 保存ra 與 $a0 步進追蹤', deck: 'cod5e-ch02-instructions-language-of-the-computer.html' },
+        { ch: 'Ch2 · Slide 10', name: '5. MIPS 五大定址模式硬體解碼模擬器', desc: 'Immediate / Register / Base / PC-Relative / Pseudodirect', deck: 'cod5e-ch02-instructions-language-of-the-computer.html' },
+        { ch: 'Ch3 · Slide 06', name: '6. IEEE 754 五大編碼區間與 Denormal 探索器', desc: '-0.75 拆解與 Gradual Underflow 2⁻¹⁴⁹ 靈魂三問', deck: 'cod5e-ch03-arithmetic-for-computers.html' },
+        { ch: 'Ch3 · Slide 10', name: '7. Subword Parallelism 與 x86 AVX 模擬器', desc: '128-bit 進位鏈切分 (16B/8H/4W/2D) 與 AVX 3.85×', deck: 'cod5e-ch03-arithmetic-for-computers.html' },
+        { ch: 'Ch4 · Slide 04', name: '8. Single-Cycle Control Signals 互動探索器', desc: 'R-type / lw / sw / beq / Jump 9 條控制訊號亮燈', deck: 'cod5e-ch04-the-processor.html' },
+        { ch: 'Ch4 · Slide 09', name: '9. Forwarding Unit (EX vs. MEM Hazard) 步進器', desc: 'Double Data Hazard 優先權與 ForwardA/B 多工選擇', deck: 'cod5e-ch04-the-processor.html' },
+        { ch: 'Ch4 · Slide 10', name: '10. Load-Use Hazard Detection 與 Bubble 插入器', desc: 'lw 後緊接 sub 之 PCWrite=0 與 ID/EX 清零', deck: 'cod5e-ch04-the-processor.html' },
+        { ch: 'Ch4 · Slide 11', name: '11. 2-Bit Saturating Branch Predictor 狀態機', desc: 'Nested Loop Taken/Not-Taken 連續預測失敗修復', deck: 'cod5e-ch04-the-processor.html' },
+        { ch: 'Ch5 · Slide 05', name: '12. Direct-Mapped vs. 2-Way vs. Full Cache 追蹤器', desc: '序列 A (22,26...) 與序列 B (0,8,0,6,8) 乒乓驅逐對比', deck: 'cod5e-ch05-exploiting-memory-hierarchy.html' },
+        { ch: 'Ch5 · Slide 09', name: '13. Hamming SEC/DEC 單雙位元錯誤糾錯器', desc: '點擊 Bit 1–12 注入故障即時計算 Syndrome 與總同位', deck: 'cod5e-ch05-exploiting-memory-hierarchy.html' },
+        { ch: 'Ch5 · Slide 13', name: '14. 4-State Cache FSM 與 Snooping Coherence', desc: 'Dirty Miss 回寫狀態機與多核 Write-Invalidate 廣播', deck: 'cod5e-ch05-exploiting-memory-hierarchy.html' },
+        { ch: 'Ch6 · Slide 03', name: '15. Strong vs. Weak Scaling 矩陣加總實驗室', desc: '10×10 vs 100×100 在 100 核之加速比與負載失衡崩潰', deck: 'cod5e-ch06-parallel-processors-from-client-to-cloud.html' },
+        { ch: 'Ch6 · Slide 09', name: '16. Roofline 模型與 Core i7 vs. Tesla GPU 探索器', desc: 'SpMV / Stencil / FFT / DGEMM 算術強度與屋頂落點', deck: 'cod5e-ch06-parallel-processors-from-client-to-cloud.html' }
+      ];
+
+      const simHubGrid = document.getElementById('simHubGrid');
+      simList.forEach(s => {
+        const div = document.createElement('div');
+        div.className = 'card-sub';
+        div.style.cursor = 'pointer';
+        div.innerHTML =
+          '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;">' +
+            '<span class="tag-if">' + s.ch + '</span>' +
+            '<span style="font-size:0.72rem; color:var(--accent); font-weight:600;">▶ 啟動</span>' +
+          '</div>' +
+          '<div style="font-size:0.8rem; font-weight:700; color:var(--text);">' + s.name + '</div>' +
+          '<div style="font-size:0.73rem; color:var(--text-muted); margin-top:2px;">' + s.desc + '</div>';
+        div.addEventListener('click', () => {
+          switchView('viewTheater');
+          const targetCard = chapterCards.find(c => c.dataset.src === s.deck);
+          if (targetCard) targetCard.click();
+        });
+        simHubGrid.appendChild(div);
+      });
+    })();
+  </script>
+</body>
+</html>

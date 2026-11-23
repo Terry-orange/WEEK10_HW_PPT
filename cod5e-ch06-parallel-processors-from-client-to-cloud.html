@@ -1,0 +1,1294 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>COD 5e Ch6 — Parallel Processors from Client to Cloud 互動教學簡報</title>
+  <style>
+    :root {
+      --bg: #f3f4f6;
+      --bg-elev: #fafbfc;
+      --bg-card: #eff1f4;
+      --bg-card-alt: #e7eaef;
+      --text: #2e343b;
+      --text-muted: #66707c;
+      --text-soft: #8a94a0;
+      --border: #dde1e7;
+      --accent: #c96e43;
+      --accent-soft: rgba(201, 110, 67, 0.13);
+      --accent-strong: #a9552e;
+      --code-bg: #e9ecef;
+      --m-blue: #6b88a2;
+      --m-Blue-bg: rgba(107, 136, 162, 0.14);
+      --m-plum: #8d769a;
+      --m-plum-bg: rgba(141, 118, 154, 0.14);
+      --m-ochre: #b58d3d;
+      --m-ochre-bg: rgba(181, 141, 61, 0.15);
+      --m-sage: #628a73;
+      --m-sage-bg: rgba(98, 138, 115, 0.15);
+      --m-rose: #b26b6b;
+      --m-rose-bg: rgba(178, 107, 107, 0.15);
+      --shadow: 0 2px 10px rgba(46, 52, 59, 0.04);
+      --radius: 10px;
+      --radius-sm: 6px;
+      --font-sans: "Inter", "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+      --font-mono: "JetBrains Mono", "Cascadia Code", "Consolas", monospace;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg: #1b1e22;
+        --bg-elev: #22262b;
+        --bg-card: #292e35;
+        --bg-card-alt: #313740;
+        --text: #d7dce2;
+        --text-muted: #909aa6;
+        --text-soft: #6c7683;
+        --border: #363c45;
+        --accent: #dc865c;
+        --accent-soft: rgba(220, 134, 92, 0.16);
+        --accent-strong: #eb9d76;
+        --code-bg: #181b1f;
+        --m-blue: #89a5bf;
+        --m-Blue-bg: rgba(137, 165, 191, 0.16);
+        --m-plum: #aa94b7;
+        --m-plum-bg: rgba(170, 148, 183, 0.16);
+        --m-ochre: #cfa958;
+        --m-ochre-bg: rgba(207, 169, 88, 0.17);
+        --m-sage: #7fa790;
+        --m-sage-bg: rgba(127, 167, 144, 0.17);
+        --m-rose: #cc8585;
+        --m-rose-bg: rgba(204, 133, 133, 0.17);
+        --shadow: 0 4px 16px rgba(0, 0, 0, 0.22);
+      }
+    }
+
+    :root[data-theme="dark"] {
+      --bg: #1b1e22;
+      --bg-elev: #22262b;
+      --bg-card: #292e35;
+      --bg-card-alt: #313740;
+      --text: #d7dce2;
+      --text-muted: #909aa6;
+      --text-soft: #6c7683;
+      --border: #363c45;
+      --accent: #dc865c;
+      --accent-soft: rgba(220, 134, 92, 0.16);
+      --accent-strong: #eb9d76;
+      --code-bg: #181b1f;
+      --m-blue: #89a5bf;
+      --m-Blue-bg: rgba(137, 165, 191, 0.16);
+      --m-plum: #aa94b7;
+      --m-plum-bg: rgba(170, 148, 183, 0.16);
+      --m-ochre: #cfa958;
+      --m-ochre-bg: rgba(207, 169, 88, 0.17);
+      --m-sage: #7fa790;
+      --m-sage-bg: rgba(127, 167, 144, 0.17);
+      --m-rose: #cc8585;
+      --m-rose-bg: rgba(204, 133, 133, 0.17);
+      --shadow: 0 4px 16px rgba(0, 0, 0, 0.22);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      width: 100%; height: 100%; overflow: hidden;
+      background: var(--bg); color: var(--text);
+      font-family: var(--font-sans); font-size: 15px; line-height: 1.48;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .app { display: flex; flex-direction: column; width: 100vw; height: 100vh; }
+
+    .topbar {
+      height: 46px; padding: 0 22px;
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--bg-elev); border-bottom: 1px solid var(--border);
+      flex-shrink: 0; z-index: 20;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 0.9rem; }
+    .brand-badge {
+      background: var(--accent-soft); color: var(--accent);
+      padding: 2px 8px; border-radius: 4px;
+      font-family: var(--font-mono); font-size: 0.76rem; font-weight: 600;
+    }
+    .brand-chapter { color: var(--text-muted); font-weight: 400; font-size: 0.82rem; }
+    .toolbar { display: flex; align-items: center; gap: 8px; }
+    .btn {
+      background: var(--bg-card); color: var(--text);
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+      padding: 4px 10px; font-size: 0.78rem; font-family: var(--font-sans);
+      cursor: pointer; display: inline-flex; align-items: center; gap: 5px;
+      transition: all 0.15s ease; text-decoration: none;
+    }
+    .btn:hover { border-color: var(--accent); color: var(--accent); }
+    .kbd-hint {
+      font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-soft);
+      background: var(--bg); padding: 1px 5px; border-radius: 3px; border: 1px solid var(--border);
+    }
+
+    .progress-wrap { width: 100%; height: 3px; background: var(--border); flex-shrink: 0; }
+    .progress-bar { height: 100%; background: var(--accent); width: 0%; transition: width 0.25s ease; }
+
+    .deck {
+      flex: 1; position: relative; overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+      padding: 14px 26px;
+    }
+    .slide {
+      width: 100%; max-width: 1220px; height: 100%; max-height: 760px;
+      background: var(--bg-elev); border: 1px solid var(--border);
+      border-radius: var(--radius); box-shadow: var(--shadow);
+      padding: 16px 26px; display: none; flex-direction: column;
+      justify-content: space-between; overflow-y: auto;
+    }
+    .slide.active { display: flex; animation: fadeIn 0.2s ease; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(3px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .slide-header {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      gap: 14px; border-bottom: 1px solid var(--border);
+      padding-bottom: 6px; margin-bottom: 7px; flex-shrink: 0;
+    }
+    .slide-kicker {
+      font-family: var(--font-mono); font-size: 0.73rem; color: var(--accent);
+      text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; margin-bottom: 2px;
+    }
+    .slide-title { font-size: 1.28rem; font-weight: 700; color: var(--text); line-height: 1.25; }
+    .slide-source {
+      font-family: var(--font-mono); font-size: 0.71rem; color: var(--text-muted);
+      background: var(--bg-card); padding: 3px 8px; border-radius: 4px;
+      border: 1px solid var(--border); white-space: nowrap; flex-shrink: 0;
+    }
+    .slide-body {
+      flex: 1; display: flex; flex-direction: column;
+      gap: 8.5px; justify-content: flex-start; overflow-y: auto;
+    }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 13px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 11px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .grid-2-3 { display: grid; grid-template-columns: 1.12fr 1.38fr; gap: 13px; }
+    .grid-3-2 { display: grid; grid-template-columns: 1.38fr 1.12fr; gap: 13px; }
+
+    .card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 8.5px 11px;
+    }
+    .card-accent {
+      background: var(--accent-soft); border: 1px solid var(--accent);
+      border-radius: var(--radius-sm); padding: 8px 11px;
+    }
+    .card-title {
+      font-size: 0.86rem; font-weight: 700; color: var(--text);
+      margin-bottom: 5px; display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    }
+    .card-title .pill {
+      font-family: var(--font-mono); font-size: 0.69rem; font-weight: 600;
+      padding: 1px 7px; border-radius: 10px; background: var(--bg-elev);
+      color: var(--accent); border: 1px solid var(--border);
+    }
+
+    ul.clean { list-style: none; display: flex; flex-direction: column; gap: 4.5px; }
+    ul.clean li { position: relative; padding-left: 13px; font-size: 0.82rem; color: var(--text); }
+    ul.clean li::before {
+      content: "•"; position: absolute; left: 0; color: var(--accent); font-weight: bold;
+    }
+    .muted { color: var(--text-muted); font-size: 0.79rem; }
+    code, .mono {
+      font-family: var(--font-mono); background: var(--code-bg);
+      padding: 1px 5px; border-radius: 3px; font-size: 0.79rem;
+    }
+
+    table.wiki-table {
+      width: 100%; border-collapse: collapse; font-size: 0.77rem;
+      background: var(--bg-elev); border-radius: var(--radius-sm);
+      overflow: hidden; border: 1px solid var(--border);
+    }
+    table.wiki-table th, table.wiki-table td {
+      padding: 3px 6.5px; text-align: left; border-bottom: 1px solid var(--border);
+    }
+    table.wiki-table th {
+      background: var(--bg-card-alt); font-weight: 600; color: var(--text);
+      font-size: 0.73rem; font-family: var(--font-mono);
+    }
+    table.wiki-table tr:last-child td { border-bottom: none; }
+
+    .formula-box {
+      background: var(--code-bg); border-left: 3px solid var(--accent);
+      padding: 7px 11px; border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      font-family: var(--font-mono); font-size: 0.8rem; color: var(--text);
+    }
+
+    .tag-if { background: var(--m-Blue-bg); color: var(--m-blue); padding: 1px 6px; border-radius: 4px; font-family: var(--font-mono); font-size: 0.72rem; font-weight: 600; }
+    .tag-id { background: var(--m-plum-bg); color: var(--m-plum); padding: 1px 6px; border-radius: 4px; font-family: var(--font-mono); font-size: 0.72rem; font-weight: 600; }
+    .tag-ex { background: var(--m-ochre-bg); color: var(--m-ochre); padding: 1px 6px; border-radius: 4px; font-family: var(--font-mono); font-size: 0.72rem; font-weight: 600; }
+    .tag-mem { background: var(--m-sage-bg); color: var(--m-sage); padding: 1px 6px; border-radius: 4px; font-family: var(--font-mono); font-size: 0.72rem; font-weight: 600; }
+    .tag-wb { background: var(--m-rose-bg); color: var(--m-rose); padding: 1px 6px; border-radius: 4px; font-family: var(--font-mono); font-size: 0.72rem; font-weight: 600; }
+
+    .svg-wrap {
+      width: 100%; background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 7px 10px;
+      display: flex; justify-content: center; align-items: center;
+    }
+    svg { width: 100%; height: auto; display: block; }
+
+    .sim-bar { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 5px; }
+    .sim-btn {
+      background: var(--bg-elev); color: var(--text); border: 1px solid var(--border);
+      border-radius: 5px; padding: 3.5px 9px; font-family: var(--font-mono);
+      font-size: 0.75rem; cursor: pointer; transition: all 0.15s ease;
+    }
+    .sim-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .sim-btn.active { background: var(--accent); color: var(--bg-elev); border-color: var(--accent); font-weight: 600; }
+
+    .footer {
+      height: 44px; padding: 0 22px;
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--bg-elev); border-top: 1px solid var(--border);
+      flex-shrink: 0; font-size: 0.79rem; color: var(--text-muted);
+    }
+    .page-indicator { font-family: var(--font-mono); font-weight: 600; color: var(--text); }
+
+    .drawer-backdrop {
+      position: fixed; inset: 0; background: rgba(0, 0, 0, 0.45);
+      display: none; align-items: center; justify-content: center; z-index: 50;
+    }
+    .drawer-backdrop.open { display: flex; }
+    .drawer {
+      width: 90%; max-width: 960px; max-height: 82vh;
+      background: var(--bg-elev); border: 1px solid var(--border);
+      border-radius: var(--radius); box-shadow: var(--shadow);
+      padding: 20px 24px; display: flex; flex-direction: column; gap: 12px; overflow: hidden;
+    }
+    .drawer-header {
+      display: flex; justify-content: space-between; align-items: center;
+      border-bottom: 1px solid var(--border); padding-bottom: 10px;
+    }
+    .drawer-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 8px; overflow-y: auto; padding-right: 4px;
+    }
+    .drawer-item {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 8px 11px;
+      cursor: pointer; text-align: left; transition: all 0.15s ease;
+    }
+    .drawer-item:hover { border-color: var(--accent); }
+    .drawer-item.current { border-color: var(--accent); background: var(--accent-soft); }
+    .drawer-num { font-family: var(--font-mono); font-size: 0.72rem; color: var(--accent); font-weight: 600; }
+    .drawer-name { font-size: 0.82rem; font-weight: 600; color: var(--text); margin-top: 2px; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-badge">COD 5e · Ch6</span>
+        <span>Parallel Processors from Client to Cloud</span>
+        <span class="brand-chapter">｜Scaling、Flynn's、Vector/GPU、SMT、SMP/Clusters 與 Roofline Model</span>
+      </div>
+      <div class="toolbar">
+        <a class="btn" href="index.html">← 回全冊總網</a>
+        <button class="btn" id="btnOverview" title="章節目錄 (O)">☰ 目錄 <span class="kbd-hint">O</span></button>
+        <button class="btn" id="btnTheme" title="切換深淺色主題 (T)">◐ 主題: <span id="themeLabel">系統</span> <span class="kbd-hint">T</span></button>
+        <button class="btn" id="btnFullscreen" title="全螢幕 (F)">⛶ 全螢幕 <span class="kbd-hint">F</span></button>
+      </div>
+    </header>
+
+    <div class="progress-wrap">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <main class="deck" id="deck">
+      <!-- ==================== SLIDE 01 ==================== -->
+      <section class="slide active" data-title="封面與學習地圖：Parallel Processors from Client to Cloud">
+        <div class="slide-header">
+          <div>
+            <div class="slide-kicker">Chapter 06 · Overview &amp; Learning Map</div>
+            <h1 class="slide-title">從客戶端到雲端的平行處理器（Parallel Processors）：多核心、向量、GPU 與 Roofline</h1>
+          </div>
+          <span class="slide-source">wiki/sources/cod5e-ch06-parallel-processors-from-client-to-cloud.md</span>
+        </div>
+        <div class="slide-body">
+          <div class="card-accent">
+            <div class="card-title">
+              <span>Ch6 核心主線：跨越 Power Wall 與 ILP Wall 後，如何擴展從手機多核、GPU 到雲端資料中心？</span>
+              <span class="pill">§6.1 – §6.15 全覆蓋</span>
+            </div>
+            <p class="muted" style="color:var(--text);">
+              本章統整平行程式設計的嚴苛限制（Amdahl's Law、Strong vs. Weak Scaling 與 Load Balancing）、<strong>Flynn's 四象限分類</strong>（SISD / SIMD / MISD / MIMD）、<strong>Vector 處理器 (`DAXPY`)</strong>、<strong>Hardware Multithreading (Coarse / Fine / SMT)</strong>、<strong>SMP (UMA/NUMA) vs. Message-Passing 叢集</strong>、<strong>NVIDIA GPU 架構</strong>與 <strong>Roofline 效能評估模型</strong>。
+            </p>
+          </div>
+
+          <div class="grid-4">
+            <div class="card">
+              <div class="card-title"><span>1. Scaling 與 Flynn's</span><span class="tag-if">§6.1–§6.3</span></div>
+              <ul class="clean">
+                <li><strong>100 核達 90×</strong>：循序比例須 ≤ 0.1%</li>
+                <li><strong>Strong vs. Weak Scaling</strong> 與負載平衡</li>
+                <li><strong>Flynn's Taxonomy</strong> 與 <strong>Vector `DAXPY`</strong> (6 vs 578 指令)</li>
+              </ul>
+            </div>
+            <div class="card">
+              <div class="card-title"><span>2. 多執行緒與多核記憶體</span><span class="tag-id">§6.4–§6.7</span></div>
+              <ul class="clean">
+                <li><strong>Coarse vs. Fine-Grained vs. SMT</strong></li>
+                <li><strong>SMP (UMA / NUMA)</strong> 共用位址空間</li>
+                <li><strong>Message-Passing Clusters</strong> 私有位址與 `send/receive`</li>
+              </ul>
+            </div>
+            <div class="card">
+              <div class="card-title"><span>3. NVIDIA GPU 與網路拓撲</span><span class="tag-ex">§6.6 &amp; §6.8</span></div>
+              <ul class="clean">
+                <li><strong>GPU SM / 32-Thread Warp</strong> 與 3 階層記憶體</li>
+                <li><strong>CUDA 術語對照表</strong>與 Gather-Scatter</li>
+                <li><strong>Ring / Mesh / Torus / Hypercube</strong> Bisection BW</li>
+              </ul>
+            </div>
+            <div class="card">
+              <div class="card-title"><span>4. Roofline 與 OpenMP DGEMM</span><span class="tag-mem">§6.9–§6.13</span></div>
+              <ul class="clean">
+                <li><strong>Roofline Model</strong>：Arithmetic Intensity (FLOPs/Byte)</li>
+                <li><strong>Core i7 vs. Tesla GTX 280/480</strong> 實測</li>
+                <li><strong>OpenMP 16 核 DGEMM</strong>：<strong>174 GFLOPS (217×)</strong></li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="svg-wrap">
+            <svg viewBox="0 0 1060 112" aria-label="Ch6 Parallel Architecture Spectrum">
+              <rect x="15" y="16" width="245" height="80" rx="7" fill="var(--bg-elev)" stroke="var(--m-blue)" stroke-width="1.5"/>
+              <text x="137" y="38" text-anchor="middle" fill="var(--m-blue)" font-size="11.5" font-weight="700" font-family="var(--font-mono)">1. Data-Level Parallelism (SIMD)</text>
+              <text x="137" y="58" text-anchor="middle" fill="var(--text)" font-size="10.5">Vector Processors (VMIPS 64-Elem)</text>
+              <text x="137" y="76" text-anchor="middle" fill="var(--text-muted)" font-size="9.5">x86 SSE2 / AVX (256-bit YMM)</text>
+
+              <rect x="280" y="16" width="245" height="80" rx="7" fill="var(--bg-elev)" stroke="var(--m-plum)" stroke-width="1.5"/>
+              <text x="402" y="38" text-anchor="middle" fill="var(--m-plum)" font-size="11.5" font-weight="700" font-family="var(--font-mono)">2. Thread-Level (TLP + SMT)</text>
+              <text x="402" y="58" text-anchor="middle" fill="var(--text)" font-size="10.5">Coarse / Fine-Grained / SMT</text>
+              <text x="402" y="76" text-anchor="middle" fill="var(--text-muted)" font-size="9.5">SMP (UMA vs NUMA) · OpenMP</text>
+
+              <rect x="545" y="16" width="245" height="80" rx="7" fill="var(--bg-elev)" stroke="var(--m-ochre)" stroke-width="1.5"/>
+              <text x="667" y="38" text-anchor="middle" fill="var(--m-ochre)" font-size="11.5" font-weight="700" font-family="var(--font-mono)">3. Heterogeneous GPU (SIMT)</text>
+              <text x="667" y="58" text-anchor="middle" fill="var(--text)" font-size="10.5">Multithreaded SIMD Processor (SM)</text>
+              <text x="667" y="76" text-anchor="middle" fill="var(--text-muted)" font-size="9.5">32-Thread Warp · GTX 280 / 480</text>
+
+              <rect x="810" y="16" width="235" height="80" rx="7" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.8"/>
+              <text x="927" y="38" text-anchor="middle" fill="var(--accent)" font-size="11.5" font-weight="700" font-family="var(--font-mono)">4. Roofline &amp; Cloud Clusters</text>
+              <text x="927" y="58" text-anchor="middle" fill="var(--text)" font-size="10.5">min(Peak BW × AI, Peak FLOP/s)</text>
+              <text x="927" y="76" text-anchor="middle" fill="var(--text-muted)" font-size="9.5">DGEMM 174 GFLOPS (217× Total!)</text>
+            </svg>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 02 ==================== -->
+      <section class="slide" data-title="平行處理器目標、兩大挑戰與 Amdahl's Law 100 核 0.1% 嚴苛極限 (§6.1–§6.2)">
+        <div class="slide-header">
+          <div>
+            <div class="slide-kicker">§6.1 – §6.2 · Why Parallel Processors &amp; The Difficulty of Creating Parallel Processing Programs</div>
+            <h1 class="slide-title">平行處理器分類、平行化四大障礙與 Amdahl's Law 100 核心 <code>0.1%</code> 鐵律</h1>
+          </div>
+          <span class="slide-source">wiki/concepts/parallel-programming-scaling-and-flynn-taxonomy.md</span>
+        </div>
+        <div class="slide-body">
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-title"><span>1. 多處理器分類與兩大平行模式</span><span class="tag-if">Multicore vs. Cluster</span></div>
+              <ul class="clean">
+                <li><strong>Multicore Microprocessors（多核心微處理器）</strong>：在單一晶片 IC 內整合多個處理器核心（Core），通常共享晶片上的 L2/L3 Cache 與單一實體位址空間。</li>
+                <li><strong>Clusters / Warehouse-Scale Computers (WSCs)</strong>：透過高速區域網路將數十至數萬台獨立伺服器（Nodes）連接起來的雲端叢集。</li>
+                <li><strong>兩大平行軟體模式</strong>：<br/>
+                  • <strong>Task-Level Parallelism (Process-Level)</strong>：多個獨立任務同時執行。<br/>
+                  • <strong>Data-Level Parallelism (Parallel Processing Program)</strong>：單一龐大問題切分資料由多核心協同解算。</li>
+              </ul>
+            </div>
+
+            <div class="card">
+              <div class="card-title"><span>2. 撰寫高效平行程式的四大核心障礙</span><span class="tag-wb">4 Parallel Obstacles</span></div>
+              <ul class="clean">
+                <li><strong>1. Partitioning（問題切分）</strong>：必須把工作拆成可同時執行的子任務。</li>
+                <li><strong>2. Load Balancing（負載平衡）</strong>：每個核心分到的工作量必須幾乎相等（整體完成時間由<strong>最慢的那顆核心</strong>決定！）。</li>
+                <li><strong>3. Coordination &amp; Synchronization Overhead（同步開銷）</strong>：鎖定（Locks）與屏障（Barriers）會強制核心等待。</li>
+                <li><strong>4. Communication Latency &amp; Bandwidth（通訊成本）</strong>：核心間交換資料的延遲與記憶體頻寬瓶頸。</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="card-accent">
+            <div class="card-title">
+              <span>教科書必考推導：想在 100 顆處理器上達到 90 倍加速（Speedup = 90），循序比例能有多少？</span>
+              <span class="pill">Amdahl's Law Shock</span>
+            </div>
+            <div class="formula-box" style="margin-bottom:7px;">
+              Speedup = (1) / (F<sub>serial</sub> + (1 - F<sub>serial</sub>) / (P))  ⟹  90 = (1) / (F<sub>serial</sub> + (1 - F<sub>serial</sub>) / (100))
+            </div>
+            <p style="font-size:0.83rem; color:var(--text);">
+              <strong>代數求解：</strong>
+              90 × F<sub>serial</sub> + 0.9 × (1 - F<sub>serial</sub>) = 1  ⇒  89.1 × F<sub>serial</sub> + 0.9 = 1  ⇒  F<sub>serial</sub> = (0.1) / (89.1) ≈ <strong>0.00112 ≈ 0.1%</strong>！<br/>
+              <strong>震撼結論</strong>：要在 100 核心系統達到 90 倍加速，整支程式不可平行的循序比例（含 I/O、初始化、結尾加總與同步）<strong>絕對不能超過 <code>0.1%</code></strong>！哪怕只有 <code>1%</code> 循序部分，100 核最高也只能達到 (1) / (0.01 + 0.99/100) = <strong>50.25×</strong>。
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 03 (INTERACTIVE #1) ==================== -->
+      <section class="slide" data-title="互動實驗室 #1：Strong Scaling vs. Weak Scaling 與 Load Balancing 矩陣加總實驗室 (§6.2)">
+        <div class="slide-header">
+          <div>
+            <div class="slide-kicker">Interactive Lab #1 · Strong Scaling vs. Weak Scaling &amp; Load Balancing</div>
+            <h1 class="slide-title">互動實驗室 #1：Strong vs. Weak Scaling（Gustafson's 觀點）與負載失衡模擬器</h1>
+          </div>
+          <span class="slide-source">wiki/concepts/parallel-programming-scaling-and-flynn-taxonomy.md</span>
+        </div>
+        <div class="slide-body">
+          <div class="grid-3-2">
+            <div class="card">
+              <div class="card-title">
+                <span>課本範例：100 個純量加總（不可平行：100t）+ N × N 矩陣加總（可平行：N<sup>2</sup> t / P）</span>
+                <span class="pill" id="scaleResultBadge">Speedup = 91× (91% Linear)</span>
+              </div>
+              <div class="sim-bar" id="scaleScenarioBar">
+                <button class="sim-btn" data-sc="s10_p10">1. 10×10 矩陣 · 10 核 (52%)</button>
+                <button class="sim-btn" data-sc="s10_p100">2. Strong: 10×10 · 100 核 (僅 2.0×!)</button>
+                <button class="sim-btn active" data-sc="s100_p100">3. Weak: 100×100 · 100 核 (91×!)</button>
+                <button class="sim-btn" data-sc="s200_p100">4. Weak: 200×200 · 100 核 (98×!)</button>
+                <button class="sim-btn" data-sc="imbalance_2x">5. 負載失衡: 1 核慢 2× (掉至 50×)</button>
+                <button class="sim-btn" data-sc="imbalance_5x">6. 負載失衡: 1 核慢 5× (崩至 20×)</button>
+              </div>
+              <div class="formula-box" id="scaleMathBox" style="margin-bottom:8px;"></div>
+              <table class="wiki-table">
+                <thead>
+                  <tr><th>矩陣規模 (N × N)</th><th>純量開銷 vs 矩陣工作量</th><th>P = 10 核心加速比</th><th>P = 40 核心加速比</th><th>P = 100 核心加速比</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td><strong>10 × 10 (100 adds)</strong></td><td>100t (50%) vs 100t (50%)</td><td><code>1.8×</code> (18% of linear)</td><td><code>1.95×</code> (5% of linear)</td><td><strong><code>1.98×</code> (僅 2% 線性效率！)</strong></td></tr>
+                  <tr><td><strong>100 × 100 (10,000 adds)</strong></td><td>100t (1%) vs 10,000t (99%)</td><td><code>9.2×</code> (92% of linear)</td><td><code>30×</code> (75% of linear)</td><td><strong><code>91×</code> (91% 線性效率！)</strong></td></tr>
+                  <tr><td><strong>200 × 200 (40,000 adds)</strong></td><td>100t (0.25%) vs 40,000t (99.75%)</td><td><code>9.8×</code> (98% of linear)</td><td><code>37×</code> (92% of linear)</td><td><strong><code>98×</code> (98% 線性效率！)</strong></td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="card-accent">
+              <div class="card-title"><span>Strong Scaling vs. Weak Scaling 核心觀念對比</span><span class="pill">必考定義</span></div>
+              <ul class="clean">
+                <li><strong>Strong Scaling（強擴展性 — Amdahl 視角）</strong>：<br/>
+                  在<strong>固定問題總規模（Fixed Problem Size）</strong>下增加處理器數量 P。當 P 變大時，平行部分耗時縮小，導致固定不變的循序部分 100t 佔比急遽放大，加速比很快撞牆飽和！</li>
+                <li><strong>Weak Scaling（弱擴展性 — Gustafson 視角）</strong>：<br/>
+                  <strong>隨處理器數量 P 等比例擴大問題規模</strong>（維持每顆核心的工作負載固定，甚至超線性增長如 N<sup>2</sup>）。此時可平行工作量從 100t 暴增為 10,000t ~ 40,000t，把固定循序開銷 100t 稀釋到 <code>1% ~ 0.25%</code>，輕鬆逼近線性加速！</li>
+                <li><strong>Load Balancing 鐵律</strong>：在 100 × 100、100 核環境下，只要有<strong>其中 1 顆核心分到 2% (2 倍) 或 5% (5 倍) 的工作量</strong>，其餘 99 核都得空轉等它，整體加速比立刻從 <code>91×</code> 暴跌至 <strong><code>50×</code></strong> 與 <strong><code>20×</code></strong>！</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 04 ==================== -->
+      <section class="slide" data-title="Flynn's Taxonomy 與 Vector Processors (DAXPY 6 vs. 578 指令) (§6.3)">
+        <div class="slide-header">
+          <div>
+            <div class="slide-kicker">§6.3 · Flynn's Taxonomy (SISD / SIMD / MISD / MIMD) &amp; Vector Processors</div>
+            <h1 class="slide-title">Flynn's 四象限分類與 Vector Processors（<code>DAXPY</code>：6 條向量指令 vs. 578 條純量指令）</h1>
+          </div>
+          <span class="slide-source">wiki/concepts/parallel-programming-scaling-and-flynn-taxonomy.md</span>
+        </div>
+        <div class="slide-body">
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-title"><span>1. Flynn's Taxonomy (1966) 四大平行架構分類</span><span class="tag-if">SISD / SIMD / MISD / MIMD</span></div>
+              <table class="wiki-table">
+                <thead>
+                  <tr><th>分類</th><th>全名</th><th>架構特徵與代表實例</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td><strong>SISD</strong></td><td>Single Instruction, Single Data</td><td>傳統單核心 Uniprocessor（可含 Superscalar / Pipelining ILP）</td></tr>
+                  <tr><td><strong>SIMD</strong></td><td>Single Instruction, Multiple Data</td><td><strong>單一 PC 控制多組資料通道</strong>：x86 SSE/AVX、<strong>Vector Processors</strong>、GPU Warp</td></tr>
+                  <tr><td><strong>MISD</strong></td><td>Multiple Instruction, Single Data</td><td><strong>無商業通用處理器</strong>（僅見於航太容錯多重表決系統或串流過濾器）</td></tr>
+                  <tr><td><strong>MIMD</strong></td><td>Multiple Instruction, Multiple Data</td><td><strong>各核心有獨立 PC 與指令流</strong>：現代 Multicore SMP (Core i7) 與雲端叢集</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="card">
+              <div class="card-title"><span>2. Vector Processors vs. Scalar (`DAXPY`: Y = a × X + Y)</span><span class="pill">578 → 6 Instructions!</span></div>
+              <div class="grid-2">
+                <div class="formula-box">
+                  <strong>MIPS Scalar (64 elements)：</strong><br/>
+                  <code>loop: l.d f2, 0(s1)</code><br/>
+                  <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;mul.d f4,f2, $f0</code><br/>
+                  <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;l.d f6, 0(s2)</code><br/>
+                  <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;add.d f6,f4, $f6</code><br/>
+                  <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;s.d f6, 0(s2)</code><br/>
+                  <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;... + addi/bne</code><br/>
+                  <span class="muted">共 <strong>578 條指令</strong> + 大量 Loop/Hazard Stalls</span>
+                </div>
+                <div class="formula-box">
+                  <strong>VMIPS Vector (64×64b Regs)：</strong><br/>
+                  <code>l.d     f0, a(sp)   # load scalar a</code><br/>
+                  <code>lv      v1, 0(s1)   # load vector X</code><br/>
+                  <code>mulvs.d v2,v1, $f0 # vec × scalar</code><br/>
+                  <code>lv      v3, 0(s2)   # load vector Y</code><br/>
+                  <code>addvv.d v4,v2, $v3 # vec + vec</code><br/>
+                  <code>sv      v4, 0(s2)   # store vec Y</code><br/>
+                  <span class="muted" style="color:var(--accent);">僅 <strong>6 條指令</strong>！零迴圈分支、Chaining 零 Stall</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card-accent">
+            <div class="card-title"><span>Vector Architecture 四大核心機制 vs. 傳統 Multimedia SIMD (SSE/AVX)</span><span class="tag-ex">Vector Advantages</span></div>
+            <div class="grid-4">
+              <div class="muted" style="color:var(--text);"><strong>1. Multi-Lane Parallelism</strong>：透過 4-Lane 或 8-Lane 硬體通道同時每個週期吐出 4~8 個元素，無須修改指令碼（AVX 擴寬則需換新 Opcode）。</div>
+              <div class="muted" style="color:var(--text);"><strong>2. Vector Length Register &amp; Strip Mining</strong>：當陣列長度 n ≠ 64 (MVL) 時，用硬體 Vector Length 暫存器自動處理首段餘數 `n mod MVL`。</div>
+              <div class="muted" style="color:var(--text);"><strong>3. Stride &amp; Gather/Scatter</strong>：內建非連續步距（Strided Access，如矩陣 Column）與索引表間接存取（Gather-Scatter）結合 Multi-banked Memory。</div>
+              <div class="muted" style="color:var(--text);"><strong>4. Vector Mask Registers</strong>：將迴圈內的 <code>if (X[i] != 0)</code> 轉為條件遮罩位元（Predication），消除分支控制危障。</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 05 ==================== -->
+      <section class="slide" data-title="硬體多執行緒（Hardware Multithreading）：Coarse-Grained vs. Fine-Grained vs. SMT (§6.4)">
+        <div class="slide-header">
+          <div>
+            <div class="slide-kicker">§6.4 · Hardware Multithreading: Coarse-Grained, Fine-Grained &amp; SMT</div>
+            <h1 class="slide-title">硬體多執行緒（Hardware Multithreading）：Coarse-Grained、Fine-Grained 與 SMT</h1>
+          </div>
+          <span class="slide-source">wiki/concepts/hardware-multithreading-smp-and-message-passing.md</span>
+        </div>
+        <div class="slide-body">
+          <div class="card">
+            <div class="card-title"><span>為什麼需要 Hardware Multithreading？用其他執行緒填補長延遲 Cache Miss 氣泡！</span><span class="pill">Per-Thread State: PC + Regs</span></div>
+            <p class="muted" style="color:var(--text);">
+              硬體必須為每個硬體執行緒保留獨立的 <strong>Register File 與 Program Counter (PC)</strong>（以及獨立 Page Table Base），但共用同一套 ALU 運算單元與 Cache，使執行緒切換可在 <strong>1 個 Clock Cycle 內由硬體無縫完成</strong>（無須 OS Context Switch 數千週期開銷）。
+            </p>
+          </div>
+
+          <div class="svg-wrap">
+            <svg viewBox="0 0 1060 148" aria-label="Superscalar vs Coarse vs Fine vs SMT Issue Slots">
+              <!-- Legend -->
+              <rect x="18" y="10" width="14" height="14" rx="2" fill="var(--m-blue)"/>
+              <text x="37" y="21" fill="var(--text)" font-size="10" font-family="var(--font-mono)">Thread A</text>
+              <rect x="105" y="10" width="14" height="14" rx="2" fill="var(--accent)"/>
+              <text x="124" y="21" fill="var(--text)" font-size="10" font-family="var(--font-mono)">Thread B</text>
+              <rect x="192" y="10" width="14" height="14" rx="2" fill="var(--m-sage)"/>
+              <text x="211" y="21" fill="var(--text)" font-size="10" font-family="var(--font-mono)">Thread C</text>
+              <rect x="279" y="10" width="14" height="14" rx="2" fill="var(--m-plum)"/>
+              <text x="298" y="21" fill="var(--text)" font-size="10" font-family="var(--font-mono)">Thread D</text>
+              <rect x="366" y="10" width="14" height="14" rx="2" fill="var(--bg-elev)" stroke="var(--border)"/>
+              <text x="385" y="21" fill="var(--text-muted)" font-size="10" font-family="var(--font-mono)">Empty Issue Slot (Vertical / Horizontal Waste)</text>
+
+              <!-- 1. Superscalar (No Multithreading) -->
+              <rect x="15" y="32" width="245" height="106" rx="6" fill="var(--bg-elev)" stroke="var(--border)"/>
+              <text x="137" y="49" text-anchor="middle" fill="var(--text)" font-size="10.5" font-weight="700" font-family="var(--font-mono)">1. Single-Thread Superscalar</text>
+              <rect x="35" y="58" width="45" height="14" fill="var(--m-blue)"/>
+              <rect x="85" y="58" width="45" height="14" fill="var(--m-blue)"/>
+              <rect x="35" y="75" width="45" height="14" fill="var(--m-blue)"/>
+              <rect x="35" y="92" width="195" height="16" fill="var(--bg-card)" stroke="var(--border)" stroke-dasharray="2,2"/>
+              <text x="132" y="104" text-anchor="middle" fill="var(--m-rose)" font-size="9" font-family="var(--font-mono)">Long Cache Miss Stall (Idle)</text>
+              <rect x="35" y="112" width="45" height="14" fill="var(--m-blue)"/>
+              <rect x="85" y="112" width="45" height="14" fill="var(--m-blue)"/>
+
+              <!-- 2. Coarse-Grained -->
+              <rect x="276" y="32" width="245" height="106" rx="6" fill="var(--bg-elev)" stroke="var(--m-blue)"/>
+              <text x="398" y="49" text-anchor="middle" fill="var(--m-blue)" font-size="10.5" font-weight="700" font-family="var(--font-mono)">2. Coarse-Grained MT</text>
+              <rect x="296" y="58" width="45" height="14" fill="var(--m-blue)"/>
+              <rect x="346" y="58" width="45" height="14" fill="var(--m-blue)"/>
+              <rect x="296" y="75" width="195" height="14" fill="var(--bg-card)" stroke="var(--border)" stroke-dasharray="2,2"/>
+              <text x="393" y="86" text-anchor="middle" fill="var(--text-muted)" font-size="8.5" font-family="var(--font-mono)">1-2 Cycle Flush/Fill Bubble</text>
+              <rect x="296" y="93" width="45" height="14" fill="var(--accent)"/>
+              <rect x="346" y="93" width="45" height="14" fill="var(--accent)"/>
+              <rect x="396" y="93" width="45" height="14" fill="var(--accent)"/>
+              <rect x="296" y="112" width="45" height="14" fill="var(--accent)"/>
+
+              <!-- 3. Fine-Grained -->
+              <rect x="537" y="32" width="245" height="106" rx="6" fill="var(--bg-elev)" stroke="var(--m-sage)"/>
+              <text x="659" y="49" text-anchor="middle" fill="var(--m-sage)" font-size="10.5" font-weight="700" font-family="var(--font-mono)">3. Fine-Grained MT (Round-Robin)</text>
+              <rect x="557" y="58" width="45" height="14" fill="var(--m-blue)"/>
+              <rect x="607" y="58" width="45" height="14" fill="var(--m-blue)"/>
+              <rect x="557" y="75" width="45" height="14" fill="var(--accent)"/>
+              <rect x="607" y="75" width="45" height="14" fill="var(--accent)"/>
+              <rect x="657" y="75" width="45" height="14" fill="var(--accent)"/>
+              <rect x="557" y="93" width="45" height="14" fill="var(--m-sage)"/>
+              <rect x="557" y="112" width="45" height="14" fill="var(--m-plum)"/>
+              <rect x="607" y="112" width="45" height="14" fill="var(--m-plum)"/>
+
+              <!-- 4. SMT -->
+              <rect x="798" y="32" width="247" height="106" rx="6" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.8"/>
+              <text x="921" y="49" text-anchor="middle" fill="var(--accent)" font-size="10.5" font-weight="700" font-family="var(--font-mono)">4. Simultaneous MT (SMT / HT)</text>
+              <rect x="818" y="58" width="45" height="14" fill="var(--m-blue)"/>
+              <rect x="868" y="58" width="45" height="14" fill="var(--m-blue)"/>
+              <rect x="918" y="58" width="45" height="14" fill="var(--accent)"/>
+              <rect x="968" y="58" width="45" height="14" fill="var(--m-sage)"/>
+              <rect x="818" y="75" width="45" height="14" fill="var(--m-blue)"/>
+              <rect x="868" y="75" width="45" height="14" fill="var(--accent)"/>
+              <rect x="918" y="75" width="45" height="14" fill="var(--accent)"/>
+              <rect x="968" y="75" width="45" height="14" fill="var(--m-plum)"/>
+              <rect x="818" y="93" width="45" height="14" fill="var(--m-sage)"/>
+              <rect x="868" y="93" width="45" height="14" fill="var(--m-plum)"/>
+              <rect x="918" y="93" width="45" height="14" fill="var(--m-blue)"/>
+              <rect x="968" y="93" width="45" height="14" fill="var(--accent)"/>
+              <rect x="818" y="112" width="45" height="14" fill="var(--m-blue)"/>
+              <rect x="868" y="112" width="45" height="14" fill="var(--accent)"/>
+              <rect x="918" y="112" width="45" height="14" fill="var(--m-sage)"/>
+              <rect x="968" y="112" width="45" height="14" fill="var(--m-plum)"/>
+            </svg>
+          </div>
+
+          <table class="wiki-table">
+            <thead>
+              <tr><th>多執行緒技術</th><th>切換時機與同一週期發射來源</th><th>對單一執行緒效能影響</th><th>核心優缺點與代表架構</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><strong>Coarse-Grained MT</strong></td><td>僅在發生<strong>長延遲 Stall (如 L2/DRAM Miss)</strong> 時切換；每週期僅 1 個 Thread</td><td>不拖慢當前執行中的單一執行緒</td><td>切換時需清空或凍結管線（Flush/Start-up Overhead），無法隱藏短 Stall</td></tr>
+              <tr><td><strong>Fine-Grained MT</strong></td><td><strong>每個 Clock Cycle 輪詢（Round-Robin）切換</strong>（跳過正在 Stall 的 Thread）</td><td><strong>會拉長單一執行緒的執行時間</strong></td><td>完全隱藏長短 Stalls，最大化總吞吐量（代表：<strong>Sun Niagara、NVIDIA GPU Warp</strong>）</td></tr>
+              <tr><td><strong>Simultaneous MT (SMT)</strong></td><td><strong>同一個 Clock Cycle 可從多個 Threads 混合發射多條指令！</strong></td><td>輕微競爭共用資源，整體利用率最高</td><td>直接借用 <strong>Dynamic Multiple-Issue (OoO)</strong> 的 Register Renaming，同時消滅垂直與水平空槽（代表：<strong>Intel Hyper-Threading</strong>）</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 06 ==================== -->
+      <section class="slide" data-title="共享記憶體多處理器 (SMP: UMA vs. NUMA) 與訊息傳遞叢集 (100-Core Sum) (§6.5–§6.7)">
+        <div class="slide-header">
+          <div>
+            <div class="slide-kicker">§6.5 – §6.7 · Shared Memory (SMP: UMA vs. NUMA) vs. Message-Passing Clusters</div>
+            <h1 class="slide-title">SMP (UMA vs. NUMA) vs. Message-Passing 叢集：100 核心平行加總實戰對比</h1>
+          </div>
+          <span class="slide-source">wiki/concepts/hardware-multithreading-smp-and-message-passing.md</span>
+        </div>
+        <div class="slide-body">
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-title"><span>1. Shared Memory Multiprocessor (SMP): UMA vs. NUMA</span><span class="tag-if">Single Address Space</span></div>
+              <ul class="clean">
+                <li><strong>SMP 核心定義</strong>：所有處理器核心共享<strong>單一實體位址空間（Single Physical Address Space）</strong>，核心間透過對共用變數執行隱式 <code>Load / Store</code> 通訊，並搭配 Locks 與 <code>synch()</code> Barrier 同步。</li>
+                <li><strong>UMA (Uniform Memory Access)</strong>：所有核心存取任何記憶體位址的延遲皆相同（透過集中式匯流排或切換器，核心數受限於匯流排頻寬，約 ≤ 8~ 16 核）。</li>
+                <li><strong>NUMA (Nonuniform Memory Access)</strong>：主記憶體分散配置在各處理器節點旁，存取<strong>本地記憶體（Local Memory）極快</strong>、存取遠端節點記憶體較慢，可擴充至數十至數百核心。</li>
+              </ul>
+            </div>
+
+            <div class="card">
+              <div class="card-title"><span>2. Message-Passing Multiprocessors (Clusters / WSC)</span><span class="tag-mem">Private Address Spaces</span></div>
+              <ul class="clean">
+                <li><strong>獨立私有位址空間</strong>：每個處理器節點擁有各自獨立的私有記憶體（Processor A 無法直接 `Load` Processor B 的記憶體位址）。</li>
+                <li><strong>顯式訊息傳遞（Explicit Message Passing）</strong>：節點間必須呼叫 <strong><code>send(recipient, data)</code></strong> 與 <strong><code>receive()</code></strong> API 透過網路傳送封包（如 MPI 標準）。</li>
+                <li><strong>優點</strong>：無須昂貴的跨晶片硬體 Cache Coherence 電路，可擴展至<strong>數萬台伺服器的雲端超大規模資料中心（Warehouse-Scale Computers）</strong>。</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="card-accent">
+            <div class="card-title"><span>教科書範例：100 顆處理器平行加總 100,000 個數字（每核先算 1,000 個局部和，再做二元樹 Reduction）</span><span class="pill">Tree Reduction</span></div>
+            <div class="grid-2">
+              <div class="formula-box">
+                <strong>A. Shared Memory (SMP) 樹狀歸約：</strong><br/>
+                <code>sum[Pn] = 0;</code><br/>
+                <code>for (i = 1000*Pn; i &lt; 1000*(Pn+1); i++) sum[Pn] += A[i];</code><br/>
+                <code>half = 100;</code><br/>
+                <code>repeat {</code><br/>
+                <code>&nbsp;&nbsp;synch(); /* 關鍵 Barrier：等待所有核心算完本輪！ */</code><br/>
+                <code>&nbsp;&nbsp;if (half%2 != 0 &amp;&amp; Pn == 0) sum[0] += sum[half-1];</code><br/>
+                <code>&nbsp;&nbsp;half = half / 2;</code><br/>
+                <code>&nbsp;&nbsp;if (Pn &lt; half) sum[Pn] += sum[Pn + half];</code><br/>
+                <code>} until (half == 1);</code>
+              </div>
+              <div class="formula-box">
+                <strong>B. Message-Passing (Cluster) 樹狀歸約：</strong><br/>
+                <code>sum = 0;</code><br/>
+                <code>for (i = 0; i &lt; 1000; i++) sum += A[i]; /* 私有陣列片段 */</code><br/>
+                <code>half = 100;</code><br/>
+                <code>repeat {</code><br/>
+                <code>&nbsp;&nbsp;half = (half + 1) / 2; /* 無須全域 Barrier，由 send/receive 同步 */</code><br/>
+                <code>&nbsp;&nbsp;if (Pn &gt;= half &amp;&amp; Pn &lt; old_half) send(Pn - half, sum);</code><br/>
+                <code>&nbsp;&nbsp;if (Pn &lt; (old_half / 2)) sum += receive();</code><br/>
+                <code>} until (half == 1);</code>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 07 ==================== -->
+      <section class="slide" data-title="多處理器互連網路拓撲（Ring / 2D Mesh / Torus / Hypercube）與 Bisection Bandwidth (§6.8)">
+        <div class="slide-header">
+          <div>
+            <div class="slide-kicker">§6.8 · Introduction to Multiprocessor Network Topologies</div>
+            <h1 class="slide-title">互連網路拓撲（Ring / 2D Grid / Torus / n-Cube / Multistage）與 Bisection Bandwidth</h1>
+          </div>
+          <span class="slide-source">wiki/concepts/hardware-multithreading-smp-and-message-passing.md</span>
+        </div>
+        <div class="slide-body">
+          <div class="svg-wrap">
+            <svg viewBox="0 0 1060 132" aria-label="Network Topologies Comparison">
+              <!-- 1. Ring -->
+              <rect x="12" y="8" width="245" height="116" rx="6" fill="var(--bg-elev)" stroke="var(--m-blue)"/>
+              <text x="134" y="26" text-anchor="middle" fill="var(--m-blue)" font-size="11" font-weight="700" font-family="var(--font-mono)">1. Ring Network (Degree = 2)</text>
+              <circle cx="134" cy="70" r="32" fill="none" stroke="var(--m-blue)" stroke-width="2"/>
+              <circle cx="134" cy="38" r="6" fill="var(--accent)"/>
+              <circle cx="166" cy="70" r="6" fill="var(--accent)"/>
+              <circle cx="134" cy="102" r="6" fill="var(--accent)"/>
+              <circle cx="102" cy="70" r="6" fill="var(--accent)"/>
+              <line x1="90" y1="54" x2="178" y2="86" stroke="var(--m-rose)" stroke-width="1.5" stroke-dasharray="3,2"/>
+              <text x="134" y="118" text-anchor="middle" fill="var(--m-rose)" font-size="9.5" font-weight="600" font-family="var(--font-mono)">Bisection Cut = 2 Links</text>
+
+              <!-- 2. 2D Mesh / Grid -->
+              <rect x="275" y="8" width="245" height="116" rx="6" fill="var(--bg-elev)" stroke="var(--m-sage)"/>
+              <text x="397" y="26" text-anchor="middle" fill="var(--m-sage)" font-size="11" font-weight="700" font-family="var(--font-mono)">2. 2D Grid / Mesh (Degree ≤ 4)</text>
+              <line x1="352" y1="45" x2="442" y2="45" stroke="var(--m-sage)" stroke-width="1.8"/>
+              <line x1="352" y1="70" x2="442" y2="70" stroke="var(--m-sage)" stroke-width="1.8"/>
+              <line x1="352" y1="95" x2="442" y2="95" stroke="var(--m-sage)" stroke-width="1.8"/>
+              <line x1="352" y1="45" x2="352" y2="95" stroke="var(--m-sage)" stroke-width="1.8"/>
+              <line x1="397" y1="45" x2="397" y2="95" stroke="var(--m-sage)" stroke-width="1.8"/>
+              <line x1="442" y1="45" x2="442" y2="95" stroke="var(--m-sage)" stroke-width="1.8"/>
+              <circle cx="352" cy="45" r="4.5" fill="var(--accent)"/><circle cx="397" cy="45" r="4.5" fill="var(--accent)"/><circle cx="442" cy="45" r="4.5" fill="var(--accent)"/>
+              <circle cx="352" cy="70" r="4.5" fill="var(--accent)"/><circle cx="397" cy="70" r="4.5" fill="var(--accent)"/><circle cx="442" cy="70" r="4.5" fill="var(--accent)"/>
+              <circle cx="352" cy="95" r="4.5" fill="var(--accent)"/><circle cx="397" cy="95" r="4.5" fill="var(--accent)"/><circle cx="442" cy="95" r="4.5" fill="var(--accent)"/>
+              <text x="397" y="118" text-anchor="middle" fill="var(--m-sage)" font-size="9.5" font-weight="600" font-family="var(--font-mono)">Bisection = √N Links (Torus: 2√N)</text>
+
+              <!-- 3. Hypercube (n-Cube) -->
+              <rect x="538" y="8" width="245" height="116" rx="6" fill="var(--bg-elev)" stroke="var(--m-plum)"/>
+              <text x="660" y="26" text-anchor="middle" fill="var(--m-plum)" font-size="11" font-weight="700" font-family="var(--font-mono)">3. n-Cube / Hypercube (N = 2ⁿ)</text>
+              <rect x="615" y="48" width="46" height="46" fill="none" stroke="var(--m-plum)" stroke-width="1.8"/>
+              <rect x="645" y="36" width="46" height="46" fill="none" stroke="var(--accent)" stroke-width="1.8"/>
+              <line x1="615" y1="48" x2="645" y2="36" stroke="var(--m-plum)"/><line x1="661" y1="48" x2="691" y2="36" stroke="var(--m-plum)"/>
+              <line x1="615" y1="94" x2="645" y2="82" stroke="var(--m-plum)"/><line x1="661" y1="94" x2="691" y2="82" stroke="var(--m-plum)"/>
+              <text x="660" y="118" text-anchor="middle" fill="var(--m-plum)" font-size="9.5" font-weight="600" font-family="var(--font-mono)">Degree = log₂N · Bisection = N/2</text>
+
+              <!-- 4. Fully Connected / Crossbar -->
+              <rect x="801" y="8" width="245" height="116" rx="6" fill="var(--accent-soft)" stroke="var(--accent)"/>
+              <text x="923" y="26" text-anchor="middle" fill="var(--accent)" font-size="11" font-weight="700" font-family="var(--font-mono)">4. Multistage / Crossbar Switch</text>
+              <rect x="835" y="44" width="24" height="52" rx="3" fill="var(--bg-elev)" stroke="var(--accent)"/>
+              <rect x="911" y="44" width="24" height="52" rx="3" fill="var(--bg-elev)" stroke="var(--accent)"/>
+              <rect x="987" y="44" width="24" height="52" rx="3" fill="var(--bg-elev)" stroke="var(--accent)"/>
+              <line x1="859" y1="54" x2="911" y2="84" stroke="var(--accent)" stroke-width="1.5"/>
+              <line x1="859" y1="84" x2="911" y2="54" stroke="var(--accent)" stroke-width="1.5"/>
+              <line x1="935" y1="54" x2="987" y2="84" stroke="var(--accent)" stroke-width="1.5"/>
+              <line x1="935" y1="84" x2="987" y2="54" stroke="var(--accent)" stroke-width="1.5"/>
+              <text x="923" y="118" text-anchor="middle" fill="var(--accent)" font-size="9.5" font-weight="600" font-family="var(--font-mono)">Omega / Fat-Tree (N·log₂N Switches)</text>
+            </svg>
+          </div>
+
+          <div class="card">
+            <div class="card-title"><span>互連網路效能指標與 N = 64 節點拓撲定量比較表</span><span class="pill">Bisection Bandwidth</span></div>
+            <table class="wiki-table">
+              <thead>
+                <tr><th>網路拓撲 (N 個處理器節點)</th><th>單一 Switch 連接埠數 (Degree)</th><th>網路直徑 (Diameter，最遠跳數)</th><th>Bisection Bandwidth (對切最小斷開鏈路數)</th><th>當 N = 64 時的 Bisection Links</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><strong>Bus (共用匯流排)</strong></td><td>1 (共用同一通道)</td><td>1</td><td><strong>1</strong> (所有節點爭搶單一頻寬)</td><td><strong><code>1</code></strong></td></tr>
+                <tr><td><strong>Ring (環狀網路)</strong></td><td>2 (左鄰與右鄰)</td><td>N / 2</td><td><strong>2</strong> (無論 N 多大，對切只斷 2 條線)</td><td><strong><code>2</code></strong> (Diameter = 32)</td></tr>
+                <tr><td><strong>2D Grid / Mesh (二維網格)</strong></td><td>≤ 4 (上下左右)</td><td>2(√(N) - 1)</td><td><strong>√(N)</strong></td><td><strong><code>8</code></strong> (Diameter = 14)</td></tr>
+                <tr><td><strong>2D Torus (含頭尾環繞線之網格)</strong></td><td>4</td><td>√(N)</td><td><strong>2√(N)</strong></td><td><strong><code>16</code></strong> (Diameter = 8)</td></tr>
+                <tr><td><strong>n-Cube / Hypercube (N = 2<sup>n</sup>)</strong></td><td>n = log<sub>2</sub> N</td><td>log<sub>2</sub> N</td><td><strong>N / 2</strong> (全域對半切開高頻寬)</td><td><strong><code>32</code></strong> (Degree = 6, Diameter = 6)</td></tr>
+                <tr><td><strong>Fully Connected (全連接網路)</strong></td><td>N - 1</td><td>1</td><td><strong>(N/2)<sup>2</sup> = N<sup>2</sup> / 4</strong> (總線數 N(N-1)/2)</td><td><strong><code>1,024</code></strong> (總線數 2,016 條，成本極高)</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 08 ==================== -->
+      <section class="slide" data-title="NVIDIA GPU 硬體架構（SM / 32-Thread Warp）與 CUDA 術語對照 (§6.6)">
+        <div class="slide-header">
+          <div>
+            <div class="slide-kicker">§6.6 · Hardware Multithreading + SIMD: NVIDIA GPU Architecture &amp; CUDA Terms</div>
+            <h1 class="slide-title">NVIDIA GPU 架構（Multithreaded SIMD Processor / 32-Thread Warp）與術語破譯表</h1>
+          </div>
+          <span class="slide-source">wiki/architectures/gpu-architecture-and-nvidia-tesla.md</span>
+        </div>
+        <div class="slide-body">
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-title"><span>1. GPU 核心哲學：Fine-Grained Multithreading + SIMD</span><span class="tag-ex">Zero-Overhead Warp Switch</span></div>
+              <ul class="clean">
+                <li><strong>CPU vs. GPU 面對記憶體延遲的根本差異</strong>：<br/>
+                  • <strong>Multicore CPU</strong>：依賴佔滿晶片面積的<strong>巨大多階 L1/L2/L3 Cache</strong> 來「降低延遲（Minimize Latency）」。<br/>
+                  • <strong>GPU</strong>：將晶片面積全部拿來蓋<strong>成百上千個 SIMD Lanes (ALU) 與超大 Register File</strong>，靠<strong>數十個常駐硬體執行緒束（Warps）零週期切換</strong>來「<strong>隱藏延遲（Hide Latency）</strong>」！</li>
+                <li><strong>3 階層 GPU 記憶體</strong>：① 每執行緒私有 <strong>Private Registers / Local Memory</strong> ② 同一 Thread Block 共用之高速晶片上 <strong>Local / Shared Memory (SRAM)</strong> ③ 全 GPU 共用之高頻寬 <strong>Off-chip GPU Memory (GDDR DRAM)</strong>。</li>
+              </ul>
+            </div>
+
+            <div class="card">
+              <div class="card-title"><span>2. NVIDIA Tesla Streaming Multiprocessor (SM) 架構圖</span><span class="pill">32-Thread SIMD Warp</span></div>
+              <div class="svg-wrap" style="padding:6px;">
+                <svg viewBox="0 0 460 155" aria-label="NVIDIA GPU Multithreaded SIMD Processor">
+                  <rect x="10" y="8" width="440" height="138" rx="7" fill="var(--bg-elev)" stroke="var(--accent)" stroke-width="1.6"/>
+                  <text x="230" y="25" text-anchor="middle" fill="var(--accent)" font-size="11" font-weight="700" font-family="var(--font-mono)">Multithreaded SIMD Processor (Streaming Multiprocessor, SM)</text>
+
+                  <rect x="24" y="34" width="412" height="24" rx="4" fill="var(--m-plum-bg)" stroke="var(--m-plum)"/>
+                  <text x="230" y="50" text-anchor="middle" fill="var(--m-plum)" font-size="10" font-weight="700" font-family="var(--font-mono)">SIMD Thread Scheduler (管理多達 32 個 Warps，每週期挑選 Ready Warp 發射)</text>
+
+                  <!-- 8 SIMD Lanes -->
+                  <rect x="24" y="65" width="46" height="26" rx="3" fill="var(--m-Blue-bg)" stroke="var(--m-blue)"/><text x="47" y="82" text-anchor="middle" fill="var(--text)" font-size="9" font-family="var(--font-mono)">Lane 0</text>
+                  <rect x="76" y="65" width="46" height="26" rx="3" fill="var(--m-Blue-bg)" stroke="var(--m-blue)"/><text x="99" y="82" text-anchor="middle" fill="var(--text)" font-size="9" font-family="var(--font-mono)">Lane 1</text>
+                  <rect x="128" y="65" width="46" height="26" rx="3" fill="var(--m-Blue-bg)" stroke="var(--m-blue)"/><text x="151" y="82" text-anchor="middle" fill="var(--text)" font-size="9" font-family="var(--font-mono)">Lane 2</text>
+                  <rect x="180" y="65" width="46" height="26" rx="3" fill="var(--m-Blue-bg)" stroke="var(--m-blue)"/><text x="203" y="82" text-anchor="middle" fill="var(--text)" font-size="9" font-family="var(--font-mono)">Lane 3</text>
+                  <rect x="232" y="65" width="46" height="26" rx="3" fill="var(--m-Blue-bg)" stroke="var(--m-blue)"/><text x="255" y="82" text-anchor="middle" fill="var(--text)" font-size="9" font-family="var(--font-mono)">Lane 4</text>
+                  <rect x="284" y="65" width="46" height="26" rx="3" fill="var(--m-Blue-bg)" stroke="var(--m-blue)"/><text x="307" y="82" text-anchor="middle" fill="var(--text)" font-size="9" font-family="var(--font-mono)">Lane 5</text>
+                  <rect x="336" y="65" width="46" height="26" rx="3" fill="var(--m-Blue-bg)" stroke="var(--m-blue)"/><text x="359" y="82" text-anchor="middle" fill="var(--text)" font-size="9" font-family="var(--font-mono)">Lane 6</text>
+                  <rect x="388" y="65" width="48" height="26" rx="3" fill="var(--m-Blue-bg)" stroke="var(--m-blue)"/><text x="412" y="82" text-anchor="middle" fill="var(--text)" font-size="9" font-family="var(--font-mono)">Lane 7</text>
+
+                  <rect x="24" y="98" width="202" height="38" rx="4" fill="var(--m-sage-bg)" stroke="var(--m-sage)"/>
+                  <text x="125" y="114" text-anchor="middle" fill="var(--m-sage)" font-size="9.5" font-weight="700" font-family="var(--font-mono)">32,768 × 32-bit Registers</text>
+                  <text x="125" y="128" text-anchor="middle" fill="var(--text-muted)" font-size="8.5">動態切分給所有常駐 SIMD Threads</text>
+
+                  <rect x="234" y="98" width="202" height="38" rx="4" fill="var(--accent-soft)" stroke="var(--accent)"/>
+                  <text x="335" y="114" text-anchor="middle" fill="var(--accent)" font-size="9.5" font-weight="700" font-family="var(--font-mono)">On-Chip Shared Local Memory</text>
+                  <text x="335" y="128" text-anchor="middle" fill="var(--text-muted)" font-size="8.5">16KB–48KB 高速區塊共用緩衝 + Gather/Scatter</text>
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <div class="card-accent">
+            <div class="card-title"><span>Patterson &amp; Hennessy 課本必考：NVIDIA CUDA / GPU 專有名詞 vs. 計算機結構標準術語對照表</span><span class="pill">Table 6.2 對照</span></div>
+            <table class="wiki-table">
+              <thead>
+                <tr><th>NVIDIA CUDA / GPU 術語</th><th>教科書更具描述性之標準術語 (More Descriptive Term)</th><th>傳統平行計算最接近之對應概念 (Closest Old Term)</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><strong>Grid</strong></td><td>Vectorizable Loop (可向量化之整個平行迴圈)</td><td>Vectorizable Loop</td></tr>
+                <tr><td><strong>Thread Block</strong></td><td><strong>Body of Vectorized Loop</strong> (分配給單一 SM 執行之區塊)</td><td>Strip-Mined Vector Loop Slice</td></tr>
+                <tr><td><strong>Warp (32 CUDA Threads)</strong></td><td><strong>Thread of SIMD Instructions</strong> (共用單一 PC 之 32 寬度 SIMD 執行緒)</td><td><strong>Thread of Vector Instructions</strong></td></tr>
+                <tr><td><strong>CUDA Thread (SIMD Thread)</strong></td><td><strong>Vertical Cut of a Thread of SIMD Instructions</strong> (單一元素通道)</td><td><strong>Element of a Vector Operation</strong></td></tr>
+                <tr><td><strong>Streaming Multiprocessor (SM)</strong></td><td><strong>Multithreaded SIMD Processor</strong> (多執行緒 SIMD 處理器核心)</td><td>Multithreaded Vector Processor Core</td></tr>
+                <tr><td><strong>Thread Processor / CUDA Core (SP)</strong></td><td><strong>SIMD Lane</strong> (單一資料運算通道)</td><td><strong>Vector Lane</strong></td></tr>
+                <tr><td><strong>Shared Memory (per SM)</strong></td><td><strong>Local Memory</strong> (SM 晶片上軟體管理之高速局部記憶體)</td><td>Scratchpad Memory</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 09 (INTERACTIVE #2) ==================== -->
+      <section class="slide" data-title="互動實驗室 #2：Roofline Performance Model 與 Core i7 vs. Tesla GTX 280/480 實測 (§6.10–§6.11)">
+        <div class="slide-header">
+          <div>
+            <div class="slide-kicker">Interactive Lab #2 · §6.10 – §6.11 Roofline Performance Model &amp; CPU vs. GPU Benchmarks</div>
+            <h1 class="slide-title">互動實驗室 #2：Roofline 模型（算術強度 AI）與 Core i7 vs. Tesla GPU 實測探索</h1>
+          </div>
+          <span class="slide-source">wiki/formulas/roofline-model-and-parallel-benchmarks.md</span>
+        </div>
+        <div class="slide-body">
+          <div class="formula-box">
+            <strong>Roofline 核心公式（Williams, Waterman &amp; Patterson）：</strong>
+            Attainable GFLOP/sec = min(Peak Memory Bandwidth × Arithmetic Intensity,   Peak Floating-Point Performance)
+          </div>
+
+          <div class="grid-3-2">
+            <div class="card">
+              <div class="card-title">
+                <span>點擊切換科學計算 Kernel 觀察在 Core i7-960 vs. GTX 280 / GTX 480 上的 Roofline 落點</span>
+                <span class="pill" id="roofKernelBadge">Dense Matrix (DGEMM): Compute-Bound</span>
+              </div>
+              <div class="sim-bar" id="roofKernelBar">
+                <button class="sim-btn" data-rk="spmv">1. Sparse Matrix (SpMV, AI=0.25)</button>
+                <button class="sim-btn" data-rk="stencil">2. Stencil PDE (AI=0.5)</button>
+                <button class="sim-btn" data-rk="lbmhd">3. Fluid LBMHD (AI=0.7)</button>
+                <button class="sim-btn" data-rk="fft">4. 3-D FFT (AI=1.6)</button>
+                <button class="sim-btn active" data-rk="dgemm">5. Dense Matrix DGEMM (AI &gt; 10)</button>
+                <button class="sim-btn" data-rk="gtc">6. Fusion GTC (AI=2.5)</button>
+              </div>
+              <div class="svg-wrap" id="roofSvgBox" style="padding:8px;"></div>
+              <div class="formula-box" id="roofExplainBox" style="margin-top:6px;"></div>
+            </div>
+
+            <div class="card-accent">
+              <div class="card-title"><span>Intel Core i7-960 vs. NVIDIA GTX 280 / GTX 480 規格</span><span class="pill">§6.11 Real Stuff</span></div>
+              <table class="wiki-table">
+                <thead>
+                  <tr><th>硬體規格指標</th><th>Core i7-960 (4 核)</th><th>Tesla GTX 280</th><th>Fermi GTX 480</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td><strong>時脈 / 核心通道數</strong></td><td>3.2 GHz / 4 Cores</td><td>1.3 GHz / 30 SMs</td><td>1.4 GHz / 15 SMs</td></tr>
+                  <tr><td><strong>Peak SP (單精度)</strong></td><td>102.4 GFLOP/s</td><td>933 GFLOP/s</td><td><strong>1,344 GFLOP/s</strong></td></tr>
+                  <tr><td><strong>Peak DP (倍精度)</strong></td><td><strong>51.2 GFLOP/s</strong></td><td><strong>78 GFLOP/s</strong></td><td><strong>168 GFLOP/s</strong></td></tr>
+                  <tr><td><strong>Peak Memory BW</strong></td><td><strong>16.4 GB/s</strong> (Stream)</td><td><strong>127 GB/s</strong></td><td><strong>150 GB/s</strong> (GDDR5)</td></tr>
+                  <tr><td><strong>DP Ridge Point (轉折 AI)</strong></td><td><code>3.12 FLOP/Byte</code></td><td><code>0.61 FLOP/Byte</code></td><td><code>1.12 FLOP/Byte</code></td></tr>
+                </tbody>
+              </table>
+              <ul class="clean" style="margin-top:6px;">
+                <li><strong>斜屋頂區（Memory-Bound，算術強度 AI &lt; Ridge Point）</strong>：受限於主記憶體頻寬；因為 GTX 280/480 的 GDDR 頻寬是 Core i7 的 <strong>7~9 倍</strong>，在 SpMV / Stencil / LBMHD 仍大幅勝出！</li>
+                <li><strong>平屋頂區（Compute-Bound，AI &gt; Ridge Point）</strong>：受限於浮點 ALU 峰值吞吐量；Fermi GTX 480 補強倍精度單元與晶片上快取後，較 Core i7 達成 <strong>2.5× ~ 10× 全方位加速</strong>。</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 10 ==================== -->
+      <section class="slide" data-title="Ch6 Going Faster：OpenMP 多執行緒 DGEMM (174 GFLOPS) 與全書四章 217× 加速總結 (§6.9)">
+        <div class="slide-header">
+          <div>
+            <div class="slide-kicker">§6.9 &amp; §6.12 · Going Faster: Multiple Processors (OpenMP) &amp; Four-Chapter DGEMM Finale</div>
+            <h1 class="slide-title">Ch6 Going Faster：一行 OpenMP 衝上 <code>174 GFLOPS</code> 與全書四章 <code>217×</code> 加速總結</h1>
+          </div>
+          <span class="slide-source">wiki/formulas/roofline-model-and-parallel-benchmarks.md</span>
+        </div>
+        <div class="slide-body">
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-title"><span>1. OpenMP 多執行緒平行化 Blocked AVX DGEMM</span><span class="tag-if">1 Pragma Line!</span></div>
+              <div class="formula-box" style="margin-bottom:7px;">
+                <code>#include &lt;omp.h&gt;</code><br/>
+                <code>void dgemm (int n, double* A, double* B, double* C) {</code><br/>
+                <code>&nbsp;&nbsp;<strong style="color:var(--accent);">#pragma omp parallel for</strong></code><br/>
+                <code>&nbsp;&nbsp;for (int sj = 0; sj &lt; n; sj += BLOCKSIZE)</code><br/>
+                <code>&nbsp;&nbsp;&nbsp;&nbsp;for (int si = 0; si &lt; n; si += BLOCKSIZE)</code><br/>
+                <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for (int sk = 0; sk &lt; n; sk += BLOCKSIZE)</code><br/>
+                <code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;do_block(n, si, sj, sk, A, B, C);</code><br/>
+                <code>}</code>
+              </div>
+              <p class="muted" style="color:var(--text);">
+                <strong>為什麼在最外層 <code>sj</code> 迴圈加上 <code>#pragma omp parallel for</code> 完全不會有 Data Race？</strong><br/>
+                因為不同的 <code>sj</code> 負責寫入結果矩陣 C 的<strong>完全不相交的 Column Blocks</strong>，各執行緒只共讀 A 與 B、寫入各自獨立的 C 子矩陣，零鎖定開銷！
+              </p>
+            </div>
+
+            <div class="card-accent">
+              <div class="card-title"><span>2. 全書 Ch3 → Ch4 → Ch5 → Ch6 DGEMM 效能演進總表</span><span class="pill">0.8 → 174 GFLOPS (217×)</span></div>
+              <table class="wiki-table">
+                <thead>
+                  <tr><th>章節與硬體/軟體最佳化層次</th><th>平行層級</th><th>n=32 (L1)</th><th>n=480</th><th>n=960 (大矩陣)</th><th>n=960 累積加速比</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td><strong>Ch3 Unoptimized C</strong></td><td>Scalar SISD</td><td><code>1.7 GFLOPS</code></td><td><code>1.6</code></td><td><strong><code>0.8 GFLOPS</code></strong></td><td><strong><code>1.0×</code> (基準)</strong></td></tr>
+                  <tr><td><strong>Ch3 + AVX 256-bit SIMD</strong></td><td><strong>DLP (Subword)</strong></td><td><code>6.4 GFLOPS</code></td><td><code>5.9</code></td><td><strong><code>2.5 GFLOPS</code></strong></td><td><strong><code>3.1×</code></strong></td></tr>
+                  <tr><td><strong>Ch4 + 4× Loop Unrolling</strong></td><td><strong>ILP (Multiple-Issue)</strong></td><td><code>14.6 GFLOPS</code></td><td><code>9.7</code></td><td><strong><code>5.1 GFLOPS</code></strong></td><td><strong><code>6.4×</code></strong></td></tr>
+                  <tr><td><strong>Ch5 + Cache Blocking</strong></td><td><strong>Memory Locality</strong></td><td><code>14.0 GFLOPS</code></td><td><code>13.6</code></td><td><strong><code>12.0 GFLOPS</code></strong></td><td><strong><code>15.0×</code> (單核極限)</strong></td></tr>
+                  <tr><td><strong>Ch6 + OpenMP (8 Cores)</strong></td><td><strong>TLP (8 Threads)</strong></td><td>—</td><td><code>88.0</code></td><td><strong><code>92.0 GFLOPS</code></strong></td><td><strong><code>115×</code></strong></td></tr>
+                  <tr><td><strong>Ch6 + OpenMP (16 Threads)</strong></td><td><strong>TLP (16 Threads)</strong></td><td>—</td><td><code>156.0</code></td><td><strong style="color:var(--accent);"><code>174.0 GFLOPS</code></strong></td><td><strong style="color:var(--accent);"><code>217× 總加速！</code></strong></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title"><span>為什麼 32 × 32 小矩陣開 16 個執行緒反而不會變快？</span><span class="tag-ex">Thread Overhead vs. Problem Size</span></div>
+            <p class="muted" style="color:var(--text);">
+              當 n = 32 時，整個矩陣剛好只有 <strong>1 個 <code>32 × 32</code> Block</strong>（外層 <code>sj</code> 迴圈只跑 1 次！），無法分給 16 顆核心；即便拆細，建立與同步 16 個 OpenMP 執行緒的 Coordination Overhead 也會大於運算本身。這再次印證 <strong>Weak Scaling（大問題規模 n=960）</strong>才是多核心發揮 <strong>217 倍加速</strong>的主場！
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== SLIDE 11 ==================== -->
+      <section class="slide" data-title="§6.13–§6.14 平行處理器三大迷思與陷阱 (Fallacies & Pitfalls) 與全書總結">
+        <div class="slide-header">
+          <div>
+            <div class="slide-kicker">§6.13 – §6.15 · Fallacies &amp; Pitfalls of Parallel Processors &amp; Course Finale</div>
+            <h1 class="slide-title">§6.13 平行處理器三大迷思與陷阱（Fallacies &amp; Pitfalls）與計算機結構全書總結</h1>
+          </div>
+          <span class="slide-source">wiki/formulas/roofline-model-and-parallel-benchmarks.md</span>
+        </div>
+        <div class="slide-body">
+          <div class="grid-3">
+            <div class="card">
+              <div class="card-title"><span>Fallacy 1：Amdahl's Law 不適用於平行電腦？</span><span class="tag-wb">Strong vs. Weak</span></div>
+              <p class="muted" style="color:var(--text);">
+                1987 年 Gustafson 以 Weak Scaling 在 1024 核做出近 1000× 加速後，曾有人宣稱「Amdahl's Law 已死」。事實上，<strong>只要問題規模固定（Strong Scaling）或任一子系統未隨核心數等比例放大，Amdahl's Law 永遠像重力一樣精準生效</strong>！
+              </p>
+            </div>
+
+            <div class="card">
+              <div class="card-title"><span>Fallacy 2：峰值 GFLOPS 能代表實際效能？</span><span class="tag-ex">Peak vs. Sustained</span></div>
+              <p class="muted" style="color:var(--text);">
+                行銷規格的 Peak GFLOPS 假設所有 ALU 每拍都滿載且<strong>永遠不等待記憶體</strong>。如 Roofline Model 所示，大多數真實應用（如 SpMV AI=0.25）都卡在<strong>斜屋頂（Memory Bandwidth Bound）</strong>，連峰值算力的 5% 都摸不到！
+              </p>
+            </div>
+
+            <div class="card">
+              <div class="card-title"><span>Pitfall：只看線性加速比而選了爛演算法！</span><span class="tag-id">Speedup Baseline Trap</span></div>
+              <p class="muted" style="color:var(--text);">
+                若拿一個時間複雜度較差但「很容易平行化」的演算法（如 O(N<sup>2</sup>) 排序）在 16 核跑出 15.9× 線性加速，其實際執行時間仍可能輸給在單核跑的最佳 O(N log N) 循序演算法！<strong>計算平行 Speedup 的分母必須是單核心上的最佳演算法</strong>。
+              </p>
+            </div>
+          </div>
+
+          <div class="card-accent">
+            <div class="card-title">
+              <span>《Computer Organization and Design 5th Edition》Ch1 – Ch6 硬體／軟體介面總結</span>
+              <span class="pill">The Hardware/Software Interface</span>
+            </div>
+            <div class="grid-3">
+              <div class="muted" style="color:var(--text);">
+                <strong>1. 效能鐵律與軟硬體分工（Ch1–Ch3）</strong>：<br/>
+                Time = IC × CPI × T<sub>CC</sub>。演算法與編譯器決定 IC，ISA (MIPS/x86) 與算術硬體（ALU / IEEE 754 / SIMD）共同塑造 CPI 與時脈。
+              </div>
+              <div class="muted" style="color:var(--text);">
+                <strong>2. 管線化與記憶體階層（Ch4–Ch5）</strong>：<br/>
+                5-Stage Pipeline 與 Dynamic Multiple-Issue 挖掘 ILP；SRAM Cache + DRAM + Virtual Memory / TLB 利用 Locality 弭平數百週期的記憶體鴻溝。
+              </div>
+              <div class="muted" style="color:var(--text);">
+                <strong>3. 四重平行性的終極交響（Ch3–Ch6）</strong>：<br/>
+                結合 <strong>SIMD (DLP) + Loop Unrolling (ILP) + Cache Blocking (Locality) + Multicore OpenMP / GPU (TLP)</strong>，讓同一支 DGEMM 獲得 <strong>217 倍</strong>真實硬體加速！
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div>快捷鍵：<span class="kbd-hint">←</span> / <span class="kbd-hint">→</span> / <span class="kbd-hint">Space</span> 換頁 · <span class="kbd-hint">O</span> 目錄 · <span class="kbd-hint">T</span> 主題 · <span class="kbd-hint">F</span> 全螢幕</div>
+      <div class="page-indicator" id="pageIndicator">01 / 11</div>
+    </footer>
+  </div>
+
+  <!-- Overview Drawer -->
+  <div class="drawer-backdrop" id="drawerBackdrop">
+    <div class="drawer">
+      <div class="drawer-header">
+        <strong>Ch6 Parallel Processors from Client to Cloud — 投影片章節目錄</strong>
+        <button class="btn" id="btnCloseDrawer">✕ 關閉</button>
+      </div>
+      <div class="drawer-grid" id="drawerGrid"></div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const slides = Array.from(document.querySelectorAll('.slide'));
+      const total = slides.length;
+      let current = 0;
+
+      const progressBar = document.getElementById('progressBar');
+      const pageIndicator = document.getElementById('pageIndicator');
+      const drawerBackdrop = document.getElementById('drawerBackdrop');
+      const drawerGrid = document.getElementById('drawerGrid');
+
+      function pad(n) { return n < 10 ? '0' + n : '' + n; }
+
+      function goTo(index) {
+        if (index < 0) index = 0;
+        if (index >= total) index = total - 1;
+        slides[current].classList.remove('active');
+        current = index;
+        slides[current].classList.add('active');
+        progressBar.style.width = (((current + 1) / total) * 100).toFixed(1) + '%';
+        pageIndicator.textContent = pad(current + 1) + ' / ' + pad(total);
+        renderDrawer();
+      }
+
+      function renderDrawer() {
+        drawerGrid.innerHTML = '';
+        slides.forEach((s, idx) => {
+          const btn = document.createElement('button');
+          btn.className = 'drawer-item' + (idx === current ? ' current' : '');
+          btn.innerHTML = '<div class="drawer-num">Slide ' + pad(idx + 1) + '</div><div class="drawer-name">' + (s.dataset.title || '') + '</div>';
+          btn.addEventListener('click', () => {
+            drawerBackdrop.classList.remove('open');
+            goTo(idx);
+          });
+          drawerGrid.appendChild(btn);
+        });
+      }
+
+      document.getElementById('btnOverview').addEventListener('click', () => {
+        renderDrawer();
+        drawerBackdrop.classList.add('open');
+      });
+      document.getElementById('btnCloseDrawer').addEventListener('click', () => {
+        drawerBackdrop.classList.remove('open');
+      });
+      drawerBackdrop.addEventListener('click', (e) => {
+        if (e.target === drawerBackdrop) drawerBackdrop.classList.remove('open');
+      });
+
+      const root = document.documentElement;
+      const themeLabel = document.getElementById('themeLabel');
+      const modes = ['system', 'light', 'dark'];
+      const modeNames = { system: '系統', light: '淺色', dark: '深色' };
+      let modeIdx = 0;
+
+      function applyTheme(mode) {
+        if (mode === 'system') root.removeAttribute('data-theme');
+        else root.setAttribute('data-theme', mode);
+        themeLabel.textContent = modeNames[mode];
+      }
+
+      document.getElementById('btnTheme').addEventListener('click', () => {
+        modeIdx = (modeIdx + 1) % modes.length;
+        applyTheme(modes[modeIdx]);
+      });
+
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+        if (modes[modeIdx] === 'system') applyTheme('system');
+      });
+
+      document.getElementById('btnFullscreen').addEventListener('click', () => {
+        if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});
+        else document.exitFullscreen().catch(() => {});
+      });
+
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight' || e.key === ' ') {
+          e.preventDefault(); goTo(current + 1);
+        } else if (e.key === 'ArrowLeft') {
+          e.preventDefault(); goTo(current - 1);
+        } else if (e.key === 'o' || e.key === 'O') {
+          renderDrawer(); drawerBackdrop.classList.toggle('open');
+        } else if (e.key === 't' || e.key === 'T') {
+          modeIdx = (modeIdx + 1) % modes.length; applyTheme(modes[modeIdx]);
+        } else if (e.key === 'f' || e.key === 'F') {
+          document.getElementById('btnFullscreen').click();
+        } else if (e.key === 'Escape') {
+          drawerBackdrop.classList.remove('open');
+        }
+      });
+
+      // Interactive #1: Strong vs Weak Scaling & Load Balancing
+      const scaleScenarios = {
+        s10_p10: {
+          badge: 'Speedup = 1.8× (18% Linear)',
+          html: '<strong>情境 1 (10 × 10 矩陣, P = 10 核心)：</strong><br/>' +
+                '單核時間 T<sub>1</sub> = 100t + 100t = 200t；10 核時間 T<sub>10</sub> = 100t + (100t / 10) = <strong>110t</strong><br/>' +
+                '加速比 = 200t / 110t = <strong>1.82×</strong>（因為純量循序部分佔了整整 50%！）。'
+        },
+        s10_p100: {
+          badge: 'Speedup = 1.98× (2% Linear!)',
+          html: '<strong>情境 2 — Strong Scaling 撞牆 (10 × 10 矩陣, P = 100 核心)：</strong><br/>' +
+                '單核時間 T<sub>1</sub> = 200t；100 核時間 T<sub>100</sub> = 100t + (100t / 100) = <strong>101t</strong><br/>' +
+                '加速比 = 200t / 101t = <strong>1.98×</strong>（花 100 顆處理器卻連 2 倍加速都不到！）。'
+        },
+        s100_p100: {
+          badge: 'Speedup = 91× (91% Linear!)',
+          html: '<strong>情境 3 — Weak Scaling 威力 (100 × 100 矩陣, P = 100 核心)：</strong><br/>' +
+                '單核時間 T<sub>1</sub> = 100t + 10,000t = 10,100t（循序佔比降至 1%）；100 核時間 T<sub>100</sub> = 100t + (10,000t / 100) = <strong>200t</strong><br/>' +
+                '加速比 = 10,100t / 200t = <strong>90.99× ≈ 91×</strong>（達成 91% 線性加速效率！）。'
+        },
+        s200_p100: {
+          badge: 'Speedup = 98× (98% Linear!)',
+          html: '<strong>情境 4 — Weak Scaling (200 × 200 矩陣, P = 100 核心)：</strong><br/>' +
+                '單核時間 T<sub>1</sub> = 100t + 40,000t = 40,100t（循序佔比僅 0.25%）；100 核時間 T<sub>100</sub> = 100t + (40,000t / 100) = <strong>500t</strong><br/>' +
+                '加速比 = 40,100t / 500t = <strong>97.8× ≈ 98×</strong>！'
+        },
+        imbalance_2x: {
+          badge: 'Load Imbalance (2×) → Drops to 50×!',
+          html: '<strong>情境 5 — 負載失衡 (100 × 100 矩陣, 100 核中僅 1 顆核心分到 2% 即 200 次加法)：</strong><br/>' +
+                '最慢核心耗時 = 200t（其餘 99 核做完 ≈ 99t 後必須空等），總時間 T<sub>100</sub> = 100t + 200t = <strong>300t</strong><br/>' +
+                '加速比從 91× 瞬間掉到 10,100t / 300t ≈ <strong>33.7× ~ 50×</strong>！'
+        },
+        imbalance_5x: {
+          badge: 'Load Imbalance (5×) → Collapses to 20×!',
+          html: '<strong>情境 6 — 嚴重負載失衡 (100 × 100 矩陣, 1 顆核心分到 5% 即 500 次加法)：</strong><br/>' +
+                '最慢核心耗時 = 500t，總時間 T<sub>100</sub> = 100t + 500t = <strong>600t</strong><br/>' +
+                '加速比從 91× 崩潰至 10,100t / 600t ≈ <strong>16.8× ~ 20×</strong>（1 顆老鼠屎拖垮整座 100 核叢集！）。'
+        }
+      };
+
+      function renderScale(key) {
+        const d = scaleScenarios[key];
+        document.getElementById('scaleResultBadge').textContent = d.badge;
+        document.getElementById('scaleMathBox').innerHTML = d.html;
+      }
+
+      renderScale('s100_p100');
+      const scaleScenarioBar = document.getElementById('scaleScenarioBar');
+      scaleScenarioBar.querySelectorAll('.sim-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          scaleScenarioBar.querySelectorAll('.sim-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          renderScale(btn.dataset.sc);
+        });
+      });
+
+      // Interactive #2: Roofline Explorer
+      const roofKernels = {
+        spmv: {
+          badge: 'SpMV (AI = 0.25): Memory-Bound!',
+          aiX: 95,
+          i7Y: 118,
+          gpuY: 82,
+          explain: '<strong>1. 稀疏矩陣乘法 SpMV (Arithmetic Intensity ≈ 0.25 FLOP/Byte)：</strong><br/>' +
+                   '每讀 8B Double 僅做約 2 次浮點運算，深陷左側<strong>斜屋頂（Memory Bandwidth Bound）</strong>！Core i7 僅達 <code>~4 GFLOP/s</code>，而 GTX 280/480 憑藉 <code>127–150 GB/s</code> GDDR 頻寬達到 <code>~30 GFLOP/s</code>（勝出 <strong>7×</strong>）。'
+        },
+        stencil: {
+          badge: 'Stencil PDE (AI = 0.5): Memory-Bound',
+          aiX: 145,
+          i7Y: 108,
+          gpuY: 66,
+          explain: '<strong>2. Stencil 網格偏微分方程 (AI ≈ 0.5 FLOP/Byte)：</strong><br/>' +
+                   '同樣受限於記憶體頻寬斜坡；在 Fermi GTX 480 上結合 On-Chip Shared Memory 快取相鄰網格點後，有效算術強度大幅提升，較 Core i7 快達 <strong>6× 以上</strong>。'
+        },
+        lbmhd: {
+          badge: 'Fluid LBMHD (AI = 0.7): Near GPU Ridge',
+          aiX: 185,
+          i7Y: 98,
+          gpuY: 52,
+          explain: '<strong>3. 磁流體力學 LBMHD (AI ≈ 0.70 FLOP/Byte)：</strong><br/>' +
+                   'AI 剛好跨過 GTX 280 的轉折點（Ridge Point 0.61），使 GPU 接近平屋頂峰值，而在 Core i7 上仍遠低於轉折點（3.12），仍卡在記憶體頻寬斜坡。'
+        },
+        fft: {
+          badge: '3-D FFT (AI = 1.6): GPU Compute / CPU Mem',
+          aiX: 255,
+          i7Y: 80,
+          gpuY: 42,
+          explain: '<strong>4. 三維快速傅立葉轉換 3-D FFT (AI ≈ 1.6 FLOP/Byte)：</strong><br/>' +
+                   '在 GPU 上已進入平屋頂（Compute-Bound），但在 Core i7 上因 1.6 &lt; 3.12 仍受限於 DRAM 頻寬，且包含大量非連續轉置存取。'
+        },
+        dgemm: {
+          badge: 'Dense Matrix DGEMM (AI > 10): Compute-Bound!',
+          aiX: 390,
+          i7Y: 58,
+          gpuY: 26,
+          explain: '<strong>5. 稠密矩陣乘法 Blocked DGEMM (AI ≫ 3.12 FLOP/Byte)：</strong><br/>' +
+                   '透過 Cache / Shared Memory Blocking，每載入 1 Byte 資料可重複做數十次乘加，徹底站上右側<strong>平屋頂（Compute-Bound）</strong>！Core i7 與 Tesla/Fermi GPU 皆能發揮接近硬體上限的極致算力。'
+        },
+        gtc: {
+          badge: 'Fusion GTC (AI = 2.5): Gather-Scatter Test',
+          aiX: 310,
+          i7Y: 68,
+          gpuY: 36,
+          explain: '<strong>6. 核融合粒子模擬 GTC (AI ≈ 2.5 FLOP/Byte)：</strong><br/>' +
+                   '具有較高算術強度但需要大量隨機粒子位置讀寫（Gather-Scatter）；Fermi GTX 480 新增硬體快取與原子指令後，效能較前代 GTX 280 倍增。'
+        }
+      };
+
+      function renderRoof(key) {
+        const d = roofKernels[key];
+        document.getElementById('roofKernelBadge').textContent = d.badge;
+        document.getElementById('roofExplainBox').innerHTML = d.explain;
+
+        document.getElementById('roofSvgBox').innerHTML =
+          '<svg viewBox="0 0 460 148" aria-label="Roofline Log-Log Chart">' +
+            '<!-- Axes -->' +
+            '<line x1="45" y1="128" x2="440" y2="128" stroke="var(--text-muted)" stroke-width="1.5"/>' +
+            '<line x1="45" y1="12" x2="45" y2="128" stroke="var(--text-muted)" stroke-width="1.5"/>' +
+            '<text x="245" y="144" text-anchor="middle" fill="var(--text-muted)" font-size="9.5" font-family="var(--font-mono)">Arithmetic Intensity (FLOPs / Byte Transferred) [Log Scale]</text>' +
+            '<text x="14" y="72" text-anchor="middle" fill="var(--text-muted)" font-size="9.5" font-family="var(--font-mono)" transform="rotate(-90 14,72)">GFLOP / sec</text>' +
+
+            '<!-- Fermi GTX 480 Roofline (Top) -->' +
+            '<polyline points="55,112 205,24 435,24" fill="none" stroke="var(--accent)" stroke-width="2.5"/>' +
+            '<text x="435" y="19" text-anchor="end" fill="var(--accent)" font-size="9.5" font-weight="700" font-family="var(--font-mono)">NVIDIA GTX 480 (168 GFLOP/s DP, 150 GB/s)</text>' +
+
+            '<!-- Core i7-960 Roofline (Lower) -->' +
+            '<polyline points="55,126 285,56 435,56" fill="none" stroke="var(--m-blue)" stroke-width="2.2"/>' +
+            '<text x="435" y="70" text-anchor="end" fill="var(--m-blue)" font-size="9.5" font-weight="700" font-family="var(--font-mono)">Intel Core i7-960 (51.2 GFLOP/s, 16.4 GB/s)</text>' +
+
+            '<!-- Selected Kernel Vertical AI Line -->' +
+            '<line x1="' + d.aiX + '" y1="16" x2="' + d.aiX + '" y2="128" stroke="var(--m-rose)" stroke-width="1.5" stroke-dasharray="3,2"/>' +
+            '<circle cx="' + d.aiX + '" cy="' + d.gpuY + '" r="5" fill="var(--accent)" stroke="var(--bg-elev)" stroke-width="1.5"/>' +
+            '<circle cx="' + d.aiX + '" cy="' + d.i7Y + '" r="5" fill="var(--m-blue)" stroke="var(--bg-elev)" stroke-width="1.5"/>' +
+          '</svg>';
+      }
+
+      renderRoof('dgemm');
+      const roofKernelBar = document.getElementById('roofKernelBar');
+      roofKernelBar.querySelectorAll('.sim-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          roofKernelBar.querySelectorAll('.sim-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          renderRoof(btn.dataset.rk);
+        });
+      });
+
+      goTo(0);
+    })();
+  </script>
+</body>
+</html>
